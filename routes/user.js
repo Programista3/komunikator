@@ -9,7 +9,20 @@ exports.login = function(req, res) {
 exports.dashboard = function(req, res) {
 	var userID = req.session.userID;
 	if(userID) {
-		res.render('dashboard');
+		db.query(`SELECT * FROM users WHERE id = "${userID}";`, function(error, results, fields) {
+			if(error) {
+				console.log(error['sqlMessage']);
+				res.render('error', {error: {code: 'Database error', message: error['sqlMessage']}});
+			} else {
+				if(results.length > 0) {
+					//db.query()
+					res.render('dashboard', {user: results[0]});
+				} else {
+					console.log("Error: User not found!");
+					res.render('error', {error: {code: 'Database error', message: 'User not found'}});
+				}
+			}
+		});
 	} else {
 		res.redirect('/login');
 	}
@@ -26,6 +39,7 @@ exports.auth = function(req, res) {
 	db.query(`SELECT * FROM users WHERE username = "${post.username}" AND password = "${post.password}";`, function(error, results, fields) {
 		if(error) {
 			console.log(error['sqlMessage']);
+			res.render('error', {error: {code: 'Database error', message: error['sqlMessage']}});
 		} else {
 			if(results.length > 0) {
 				console.log(results[0].id);

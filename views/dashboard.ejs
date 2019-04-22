@@ -1,7 +1,11 @@
 <!doctype html>
 <html>
     <head>
-        <title>Socket.IO chat</title>
+		<meta charset="utf-8">
+		<title>Socket.IO chat</title>
+		<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+		<link rel="stylesheet" href="../css/fontello.css">
+		<link rel="stylesheet" href="../css/styles.css">
         <script src="/socket.io/socket.io.js"></script>
         <script src="http://code.jquery.com/jquery-3.4.0.min.js"></script>
         <script>
@@ -19,16 +23,55 @@
                 });
                 socket.on('msg', function(data) {
                     $(".msg-list").append("<li>"+data.message+"</li>");
-                });
+				});
+				socket.on('search', function(data) {
+					$('#people').html('');
+					data.results.forEach(user => {
+						$('#people').append('<li>'+user.firstname+' '+user.lastname+' (@'+user.username+')</li>');
+					});
+				});
+				$('#search').on('input', function() {
+					$('#people').html('');
+					socket.emit('search', {query: $('#search').val()});
+				});
+				$("#search").focusout(function() {
+					$('#people').html('');
+					$('#search').val('');
+				});
             });
         </script>
     </head>
     <body>
-        <ul class="msg-list"></ul>
-        <form id="msg-send">
-            <input type="text" placeholder="Wiadomość" id="msg">
-            <input type="submit" value="Wyślij">
-        </form>
-        <a href="/logout"><button>Wyloguj</button></a>
+		<section class="left">
+			<header>
+				<h1><%= user.firstname %> <%= user.lastname %></h1>
+			</header>
+			<section class="list">
+				<section class="search">
+					<form id="search-form" autocomplete="off">
+						<input type="text" placeholder="Szukaj osób" id="search">
+					</form>
+				</section>
+				<ul id="people">
+					<li>Jan  kowalski</li>
+				</ul>
+			</section>
+		</section>
+		<section class="right">
+			<header>
+				<h1>Messenger <a href="/logout"><i class="demo-icon icon-logout"></i></a></h1>
+			</header>
+			<section class="messages">
+
+			</section>
+			<section class="form">
+				<form class="msg-form" autocomplete="off">
+					<input type="text" placeholder="Wiadomość" id="msg">
+					<!--<a href="" class="text-btn" id="send-photo"><i class="demo-icon icon-picture"></i></a>&nbsp;-->
+					<a href="" class="text-btn" id="send">Wyślij</a>
+				</form>
+			</section>
+		</section>
+		<span class="version">2019.0.1 (alpha)</span>
     </body>
 </html>

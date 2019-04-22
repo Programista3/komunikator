@@ -1,0 +1,82 @@
+body {
+	margin: 0;
+	height: 100%;
+	background-color: #fdfdfd;
+	color: #313131;
+	font-family: 'Roboto Condensed', sans-serif;
+}
+html {
+	height: 100%;
+}
+header {
+	height: 10%;
+	width: 100%;
+	text-align: center;
+	display: table;
+	border-bottom: 1px solid silver;
+}
+h1, h2, h3 {
+	margin: 0;
+	display: table-cell;
+	vertical-align: middle;
+}
+.left {
+	width: calc(25% - 1px);
+	height: 100%;
+	float: left;
+	border-right: 1px solid silver;
+}
+.list {
+	height: 90%;
+}
+.right {
+	width: 75%;
+	height: 100%;
+	float: right;
+}
+.messages {
+	height: 82%;
+}
+.form {
+	height: calc(8% - 1px);
+	border-top: 1px solid silver;
+	display: table;
+	width: 100%;
+}
+.search {
+	text-align: center;
+}
+.search input[type=text] {
+	border-radius: 2px;
+	border: 0;
+	border-bottom: 1px solid silver;
+	background-color: #efefef;
+	padding: 7px 10px;
+	margin: 10px 0;
+	width: 70%;
+}
+.msg-form {
+	display: table-cell;
+	vertical-align: middle;
+}
+.msg-form input[type=text] {
+	padding: 10px 15px;
+	font-size: 120%;
+	border: 0;
+	color: #313131;
+	width: 60%;
+}
+input[type=text]:focus, input[type=password]:focus {
+	outline: 0;
+}
+.text-btn {
+	text-decoration: none;
+	color: inherit;
+	font-weight: bold;
+}
+.version {
+	position: fixed;
+	bottom :2px;
+	left: 5px;
+	font-size: 10px;
+}

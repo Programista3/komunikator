@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Socket.IO chat</title>
+    </head>
+    <body>
+		<div style="text-align: center">
+			<% if(typeof error != 'undefined') { %>
+				<h1><%= error.code %></h1>
+				<h2><%= error.message %></h2>
+			<% } %>
+		</div>
+    </body>
+</html>

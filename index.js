@@ -1,5 +1,6 @@
 var user = require('./routes/user'),
-	app = require('express')(),
+	express  = require('express'),
+	app = express(),
 	http = require('http').Server(app),
 	io = require('socket.io')(http),
 	bodyParser = require('body-parser'),
@@ -19,6 +20,7 @@ var user = require('./routes/user'),
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
+app.use(express.static(__dirname + '/'));
 app.use(session);
 app.use(bodyParser.urlencoded({extended: true}));
 io.use(sharedsession(session));
@@ -42,47 +44,26 @@ function ifNotLogged(req, res, next) {
 	}
 }
 
-/*app.get('/', ifLogged, function(req, res) {
-	res.sendFile(__dirname + '/client/index.html');
-});
-
-app.get('/login', ifNotLogged, function(req, res) {
-	//res.sendFile(__dirname + '/client/login.html');
-});*/
 app.get('/login', user.login);
 app.get('/', user.dashboard);
 app.get('/logout', user.logout);
 app.post('/login', user.auth);
 
-/*app.post('/login', function(req, res) {
-	var post = req.body;
-	connection.query(`SELECT * FROM users WHERE username = "${post.username}" AND password = "${post.password}";`, function(error, results, fields) {
-		if(error) {
-			console.log(error['sqlMessage']);
-				res.send('Database error!');
-			} else {
-			if(results.length > 0) {
-				console.log(results[0].id);
-				req.session.userID = results[0].id;
-				res.redirect('/');
-			} else {
-				res.send('Nieprawidłowy login lub hasło!');
-			}
-		}
-	});
-});*/
-
-/*app.get('/logout', function(req, res) {
-	delete req.session.userID;
-	res.redirect('/login');
-});*/
-
 io.on('connection', function(socket) {
-	console.log('an user connected');
-	console.log(socket.handshake.session.userID);
+	console.log('Connected user with id: '+socket.handshake.session.userID);
 	socket.on('msg', function(msg) {
 		console.log('New message: '+msg.message);
 		io.emit('msg', {message: msg.message});
+	});
+	socket.on('search', function(data) {
+		console.log(data.query);
+		db.query(`SELECT firstname, lastname, username FROM users WHERE username LIKE '${data.query}%';`, function(error, results, fields) {
+			if(error) throw error;
+			console.log(results);
+			if(results.length > 0){ 
+				socket.emit('search', {results: results});
+			}
+		});
 	});
 });
 
