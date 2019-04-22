@@ -15,6 +15,9 @@
         <input type="text" name="username" placeholder="Username">
         <input type="password" name="password" placeholder="Password">
         <input type="submit" name="login" value="Log in">
-        </form>
+		</form>
+		<% if(typeof message != 'undefined') { %>
+			<div class="alert"><%= message %></div>
+		<% } %>
     </body>
 </html>
