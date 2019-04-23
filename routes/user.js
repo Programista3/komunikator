@@ -15,8 +15,10 @@ exports.dashboard = function(req, res) {
 				res.render('error', {error: {code: 'Database error', message: error['sqlMessage']}});
 			} else {
 				if(results.length > 0) {
-					//db.query()
-					res.render('dashboard', {user: results[0]});
+					db.query('SELECT `groups`.id, `groups`.name, `groups`.private, `groups`.last_message FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = '+userID+' AND `groups`.private = 0;', function(error2, results2) {
+						if(error2) throw error;
+						res.render('dashboard', {user: results[0], publicChat: results2});
+					});
 				} else {
 					console.log("Error: User not found!");
 					res.render('error', {error: {code: 'Database error', message: 'User not found'}});
@@ -42,7 +44,6 @@ exports.auth = function(req, res) {
 			res.render('error', {error: {code: 'Database error', message: error['sqlMessage']}});
 		} else {
 			if(results.length > 0) {
-				console.log(results[0].id);
 				req.session.userID = results[0].id;
 				res.redirect('/');
 			} else {

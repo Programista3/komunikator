@@ -9,7 +9,8 @@ var user = require('./routes/user'),
 		host: 'remotemysql.com',
 		user: 'Zwb6PCMBNz',
 		password: 'ju4LAabhFb',
-		database: 'Zwb6PCMBNz'
+		database: 'Zwb6PCMBNz',
+		multipleStatements: true
 	}),
 	session = require('express-session')({
 		secret: 'secret',
@@ -50,16 +51,49 @@ app.get('/logout', user.logout);
 app.post('/login', user.auth);
 
 io.on('connection', function(socket) {
-	console.log('Connected user with id: '+socket.handshake.session.userID);
-	socket.on('msg', function(msg) {
-		console.log('New message: '+msg.message);
-		io.emit('msg', {message: msg.message});
+	if(socket.handshake.session.userID == null) {
+		socket.disconnect();
+		return false;
+	} else {
+		socket.userID = socket.handshake.session.userID;
+		console.log('Connected user with id: '+socket.userID);
+	}
+	socket.on('msg', function(data) {
+		db.query(`SELECT * FROM group_members WHERE group_id = ${data.chat};`, function(error, results) {
+			if(error) throw error;
+			if(results.length > 0) {
+				var users = [];
+				for(var i in results) {
+					users.push(results[i].user_id);
+				}
+				if(users.includes(socket.userID)) {
+					db.query('INSERT INTO messages (group_id, sender_id, text, sent) VALUES (?, ?, ?, NOW());UPDATE `groups` SET last_message = NOW() WHERE id = ?', [data.chat, socket.userID, data.message, data.chat], function(error, results, fields) {
+						if(error) throw error;
+						Object.keys(io.sockets.sockets).forEach(function(id) {
+							if(users.includes(io.sockets.sockets[id].userID)) {
+								io.sockets.sockets[id].emit('msg', {message: data.message});
+							}
+						});
+					});
+				}
+			}
+		});
+		console.log('New message: '+data.message+' Chat: '+data.chat);
+	});
+	socket.on('getMessages', function(data) {
+		db.query('SELECT * FROM group_members WHERE group_id = ? AND user_id = ?', [data.chat, socket.userID], function(error, results, fields) {
+			if(error) throw error;
+			if(results.length > 0) {
+				db.query('SELECT sender_id, text, sent FROM messages WHERE group_id = ? LIMIT 10', [data.chat], function(error2, results2, fields2) {
+					if(error2) throw error2;
+					socket.emit('messageList', {messages: results2});
+				});
+			}
+		});
 	});
 	socket.on('search', function(data) {
-		console.log(data.query);
 		db.query(`SELECT firstname, lastname, username FROM users WHERE username LIKE '${data.query}%';`, function(error, results, fields) {
 			if(error) throw error;
-			console.log(results);
 			if(results.length > 0){ 
 				socket.emit('search', {results: results});
 			}

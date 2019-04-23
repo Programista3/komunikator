@@ -11,18 +11,16 @@
         <script>
             $(function () {
                 var socket = io();
-                $('#msg-send').submit(function(e) {
-                    e.preventDefault();
-                    if($('#msg').val()) {
-                        socket.emit('msg', {message: $("#msg").val()});
-                        //$(".msg-list").append("<li>"+$('#msg').val()+"</li>");
-                        $("#msg").val("");
-                    } else {
-                        alert("Wpisz wiadomość");
-                    }
-                });
+                $('#send').click(function(e) {
+					e.preventDefault();
+					var id = window.location.hash.substr(1);
+					if(id != '' && $('#msg').val() != '') {
+						socket.emit('msg', {message: $('#msg').val(), chat: id});
+						$('#msg').val('');
+					}
+				});
                 socket.on('msg', function(data) {
-                    $(".msg-list").append("<li>"+data.message+"</li>");
+                    $('#messages').append('<li>'+data.message+'</li>');
 				});
 				socket.on('search', function(data) {
 					$('#people').html('');
@@ -30,13 +28,26 @@
 						$('#people').append('<li>'+user.firstname+' '+user.lastname+' (@'+user.username+')</li>');
 					});
 				});
+				socket.on('disconnect', function() {
+					window.location.href = '/login';
+				});
+				socket.on('messageList', function(data) {
+					$('#messages').html('');
+					data.messages.forEach(function(msg) {
+						$('#messages').append('<li>'+msg.text+'</li>');
+					});
+				});
 				$('#search').on('input', function() {
 					$('#people').html('');
 					socket.emit('search', {query: $('#search').val()});
 				});
-				$("#search").focusout(function() {
+				$('#search').focusout(function() {
 					$('#people').html('');
 					$('#search').val('');
+				});
+				$('.chat').click(function() {
+					console.log($(this).data('id'));
+					socket.emit('getMessages', {chat: $(this).data('id')});
 				});
             });
         </script>
@@ -53,7 +64,9 @@
 					</form>
 				</section>
 				<ul id="people">
-					<li>Jan  kowalski</li>
+					<% publicChat.forEach(function(chat) { %>
+						<li><a href="#<%= chat.id %>" class="chat" data-id="<%= chat.id %>"><%= chat.name %></a></li>
+					<% }); %>
 				</ul>
 			</section>
 		</section>
@@ -61,17 +74,18 @@
 			<header>
 				<h1>Messenger <a href="/logout"><i class="demo-icon icon-logout"></i></a></h1>
 			</header>
-			<section class="messages">
-
+			<section class="preview">
+				<ul id="messages">
+				</ul>
 			</section>
 			<section class="form">
 				<form class="msg-form" autocomplete="off">
 					<input type="text" placeholder="Wiadomość" id="msg">
 					<!--<a href="" class="text-btn" id="send-photo"><i class="demo-icon icon-picture"></i></a>&nbsp;-->
-					<a href="" class="text-btn" id="send">Wyślij</a>
+					<input type="submit" value="Wyślij" class="text-btn" id="send">
 				</form>
 			</section>
 		</section>
-		<span class="version">2019.0.1 (alpha)</span>
+		<span class="version">2019.0.2 (alpha)</span>
     </body>
 </html>

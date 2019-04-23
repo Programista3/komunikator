@@ -20,6 +20,10 @@ h1, h2, h3 {
 	display: table-cell;
 	vertical-align: middle;
 }
+a {
+	text-decoration: none;
+	color: inherit;
+}
 .left {
 	width: calc(25% - 1px);
 	height: 100%;
@@ -34,8 +38,12 @@ h1, h2, h3 {
 	height: 100%;
 	float: right;
 }
-.messages {
+.preview {
 	height: 82%;
+}
+#messages {
+	padding: 0;
+	margin: 0;
 }
 .form {
 	height: calc(8% - 1px);
