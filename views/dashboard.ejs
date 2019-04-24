@@ -34,7 +34,11 @@
 				socket.on('messageList', function(data) {
 					$('#messages').html('');
 					data.messages.forEach(function(msg) {
-						$('#messages').append('<li>'+msg.text+'</li>');
+						if(msg.sender_id == data.id) {
+							$('#messages').append('<li style="text-align: right"><span class="own">'+msg.text+'</span></li>');
+						} else {
+							$('#messages').append('<li><span class="message">'+msg.text+'</span></li>');
+						}
 					});
 				});
 				$('#search').on('input', function() {
@@ -65,7 +69,10 @@
 				</section>
 				<ul id="people">
 					<% publicChat.forEach(function(chat) { %>
-						<li><a href="#<%= chat.id %>" class="chat" data-id="<%= chat.id %>"><%= chat.name %></a></li>
+						<li><a href="#<%= chat.id %>" class="chat" data-id="<%= chat.id %>"><%= chat.name %><span class="details"><%= chat.text %></span></a></li>
+					<% }); %>
+					<% privateChat.forEach(function(chat) { %>
+						<li><a href="#<%= chat.id %>" class="chat" data-id="<%= chat.id %>"><%= chat.firstname %> <%= chat.lastname %><span class="details"><%= chat.text %></span></a></li>
 					<% }); %>
 				</ul>
 			</section>
@@ -86,6 +93,6 @@
 				</form>
 			</section>
 		</section>
-		<span class="version">2019.0.2 (alpha)</span>
+		<span class="version">2019.0.3 (alpha)</span>
     </body>
 </html>

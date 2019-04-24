@@ -28,23 +28,6 @@ io.use(sharedsession(session));
 connection.connect();
 global.db = connection;
 
-function ifLogged(req, res, next) {
-	if(req.session.userID) {
-		next();
-	} else {
-		req.session.error = 'Access denied!';
-		res.redirect('/login');
-	}
-}
-
-function ifNotLogged(req, res, next) {
-	if(!req.session.userID) {
-		next();
-	} else {
-		res.redirect('/');
-	}
-}
-
 app.get('/login', user.login);
 app.get('/', user.dashboard);
 app.get('/logout', user.logout);
@@ -86,7 +69,7 @@ io.on('connection', function(socket) {
 			if(results.length > 0) {
 				db.query('SELECT sender_id, text, sent FROM messages WHERE group_id = ? LIMIT 10', [data.chat], function(error2, results2, fields2) {
 					if(error2) throw error2;
-					socket.emit('messageList', {messages: results2});
+					socket.emit('messageList', {messages: results2, id: socket.userID});
 				});
 			}
 		});
