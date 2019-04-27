@@ -16,7 +16,7 @@ exports.dashboard = function(req, res) {
 			} else {
 				if(results.length > 0) {
 					db.query('SELECT `groups`.id, `groups`.name, `groups`.private, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = `groups`.last_message_id WHERE group_members.user_id = ? AND `groups`.private = 0; SELECT `groups`.id FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = ? AND `groups`.private = 1;', [userID, userID], function(error2, results2, fields2) {
-						if(error2) throw error;
+						if(error2) throw error2;
 						var privateGroups = '';
 						for(var i in results2[1]) {
 							privateGroups += results2[1][i].id;
@@ -24,9 +24,14 @@ exports.dashboard = function(req, res) {
 								privateGroups += ', ';
 							}
 						}
-						db.query('SELECT group_members.group_id AS id, users.firstname, users.lastname, `groups`.last_message, messages.text FROM group_members INNER JOIN users ON users.id = group_members.user_id INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.group_id IN (?) AND group_members.user_id != ?;', [privateGroups, userID], function(error3, results3, fields3) {
+						db.query('SELECT group_members.group_id AS id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN users ON users.id = group_members.user_id INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.group_id IN (?) AND group_members.user_id != ?;', [privateGroups, userID], function(error3, results3, fields3) {
 							if(error3) throw error3;
-							res.render('dashboard', {user: results[0], publicChat: results2[0], privateChat: results3});
+							var chats = results2[0].concat(results3);
+							chats.sort(compare);
+							db.query('SELECT sender_id, text, date_format(sent, "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ?;', [chats[0].id], function(error4, results4, fields4) {
+								if(error4) throw error4;
+								res.render('dashboard', {user: results[0], chats: chats.slice(0, 10), messages: results4});
+							});
 						});
 					});
 				} else {
