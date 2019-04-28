@@ -146,7 +146,7 @@ io.on('connection', function(socket) {
 		});
 	});
 	socket.on('search', function(data) {
-		db.query(`SELECT firstname, lastname, username FROM users WHERE username LIKE '${data.query}%';`, function(error, results, fields) {
+		db.query(`SELECT id, firstname, lastname, username FROM users WHERE username LIKE '${data.query}%';`, function(error, results, fields) {
 			if(error) throw error;
 			if(results.length > 0){ 
 				socket.emit('search', {results: results});
