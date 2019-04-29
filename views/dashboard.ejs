@@ -68,11 +68,6 @@
 					$('#people').html('');
 					socket.emit('search', {query: $('#search').val()});
 				});
-				/*$('#search').focusout(function() {
-					$('#people').html('');
-					$('#search').val('');
-					socket.emit('getChats', {});
-				});*/
 				$(document).click(function(e) {
 					if($(e.target).closest('.list').length == 0) {
 						$('#people').html('');
@@ -86,8 +81,7 @@
 					socket.emit('getMessages', {chat: $(this).data('id')});
 				});
 				$(document.body).on('click', '.openChat', function() {
-					console.log("ok");
-					console.log($(this).data('id'));
+					socket.emit('openChat', {id: $(this).data('id')});
 				});
             });
         </script>

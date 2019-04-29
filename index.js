@@ -158,6 +158,20 @@ io.on('connection', function(socket) {
 			socket.emit('getChats', {chats: chats});
 		});
 	})
+	socket.on('openChat', function(data) {
+		db.query('SELECT group_members.group_id AD id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = ? and group_members.group_id in (SELECT group_id from group_members WHERE user_id = ?) AND `groups`.`private` = 1;', [socket.userID, data.id], function(error, results, fields) {
+			if(results.length > 0) {
+				getChats(socket.userID, function(chats) {
+					if(chats.map(({id}) => id).includes(results[0].id) == false) {
+						chats.unshift(results[0]);
+					}
+					// pobierz wiadomości i wyślij*/
+				});
+			} else {
+				// Tworzenie prywatnego czatu
+			}
+		});
+	});
 });
 
 http.listen(3000, function(){
