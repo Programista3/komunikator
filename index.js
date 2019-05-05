@@ -83,6 +83,13 @@ function getChats(userID, callback) {
 	});
 }
 
+function getMessages(groupID, callback) {
+	db.query('SELECT sender_id, text, date_format(sent, "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ? LIMIT 10', [groupID], function(error, results, fields) {
+		if(error) throw error;
+		callback(results);
+	});
+}
+
 io.on('connection', function(socket) {
 	if(socket.handshake.session.userID == null) {
 		socket.disconnect();
@@ -138,9 +145,8 @@ io.on('connection', function(socket) {
 		db.query('SELECT * FROM group_members WHERE group_id = ? AND user_id = ?', [data.chat, socket.userID], function(error, results, fields) {
 			if(error) throw error;
 			if(results.length > 0) {
-				db.query('SELECT sender_id, text, date_format(sent, "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ? LIMIT 10', [data.chat], function(error2, results2, fields2) {
-					if(error2) throw error2;
-					socket.emit('messageList', {messages: results2, id: socket.userID});
+				getMessages(data.chat, function(messages) {
+					socket.emit('messageList', {messages: messages, id: socket.userID});
 				});
 			}
 		});
@@ -159,16 +165,39 @@ io.on('connection', function(socket) {
 		});
 	})
 	socket.on('openChat', function(data) {
-		db.query('SELECT group_members.group_id AD id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = ? and group_members.group_id in (SELECT group_id from group_members WHERE user_id = ?) AND `groups`.`private` = 1;', [socket.userID, data.id], function(error, results, fields) {
+		db.query('SELECT group_members.group_id AS id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN users ON users.id = group_members.user_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.user_id = ? and group_members.group_id in (SELECT group_id from group_members WHERE user_id = ?) AND `groups`.`private` = 1;', [socket.userID, data.id], function(error, results, fields) {
+			if(error) throw error;
 			if(results.length > 0) {
 				getChats(socket.userID, function(chats) {
 					if(chats.map(({id}) => id).includes(results[0].id) == false) {
 						chats.unshift(results[0]);
 					}
-					// pobierz wiadomości i wyślij*/
+					getMessages(results[0].id, function(messages) {
+						socket.emit('openChat', {userID: socket.userID, chatID: results[0].id, chats: chats, messages: messages});
+					});
 				});
 			} else {
-				// Tworzenie prywatnego czatu
+				db.query('INSERT INTO `groups` (private, creation_date) VALUES (1, NOW());', function(error2, results2, fields2) {
+					if(error2) throw error2;
+					db.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW()), (?, ?, NOW());', [results2.insertId, data.id, results2.insertId, socket.userID], function(error3, results3, fields3) {
+						if(error3) throw error3;
+						getChats(socket.userID, function(chats) {
+							if(chats.map(({id}) => id).includes(results2.insertId) == false) {
+								db.query('SELECT concat(firstname, " ", lastname) AS name FROM users WHERE id = ?', data.id, function(error4, results4, fields4) {
+									chats.unshift({
+										id: results2.insertId,
+										name: results4[0].name,
+										last_message: null,
+										text: ''
+									});
+									socket.emit('openChat', {userID: socket.userID, chatID: results2.insertId, chats: chats, messages: []});
+								});
+							} else {
+								socket.emit('openChat', {userID: socket.userID, chatID: results2.insertId, chats: chats, messages: []});
+							}
+						});
+					});
+				});
 			}
 		});
 	});
@@ -180,6 +209,6 @@ http.listen(3000, function(){
 
 setTimeout(function() {
 	db.query('SELECT 1');
-}, 30000);
+}, 10000);
 
 //connection.end();

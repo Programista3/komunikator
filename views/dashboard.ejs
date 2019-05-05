@@ -9,8 +9,23 @@
         <script src="/socket.io/socket.io.js"></script>
         <script src="http://code.jquery.com/jquery-3.4.0.min.js"></script>
         <script>
-			function chatOnClick() {
-				
+			function updateChats(chats) {
+				$('#people').html('');
+				chats.forEach(function(chat, i) {
+					$('#people').append('<li><a href="#'+chat.id+'" class="chat" data-id="'+chat.id+'">'+chat.name+'<span class="details">'+chat.text+'</span></a></li>');
+				});
+				$('#people').find('[data-id="'+window.location.hash.slice(1)+'"]').addClass('active');
+			}
+
+			function updateMessages(messages, userID) {
+				$('#messages').html('');
+				messages.forEach(function(message) {
+					if(message.sender_id == userID) {
+						$('#messages').append('<li style="text-align: right"><span class="own" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+					} else {
+						$('#messages').append('<li><span class="message" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+					}
+				});
 			}
 
             $(function () {
@@ -30,14 +45,7 @@
 						$('#people').append('<li><a href="#'+chat.id+'" class="chat" data-id="'+chat.id+'">'+chat.name+'<span class="details">'+chat.text+'</span></a></li>')
 					});
 					$('#people > li:first-child').addClass('active');
-					$('#messages').html('');
-					data.messages.forEach(function(message) {
-						if(message.sender_id == data.user_id) {
-							$('#messages').append('<li style="text-align: right"><span class="own" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
-						} else {
-							$('#messages').append('<li><span class="message" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
-						}
-					});
+					updateMessages(data.messages);
 				});
 				socket.on('search', function(data) {
 					$('#people').html('');
@@ -59,10 +67,12 @@
 					});
 				});
 				socket.on('getChats', function(data) {
-					data.chats.forEach(function(chat, i) {
-						$('#people').append('<li><a href="#'+chat.id+'" class="chat" data-id="'+chat.id+'">'+chat.name+'<span class="details">'+chat.text+'</span></a></li>');
-					});
-					$('#people').find('[data-id="'+window.location.hash.slice(1)+'"]').addClass('active');
+					updateChats(data.chats, data.user_id);
+				});
+				socket.on('openChat', function(data) {
+					window.location.hash = data.chatID;
+					updateChats(data.chats);
+					updateMessages(data.messages, data.userID);
 				});
 				$('#search').on('input', function() {
 					$('#people').html('');
@@ -70,7 +80,6 @@
 				});
 				$(document).click(function(e) {
 					if($(e.target).closest('.list').length == 0) {
-						$('#people').html('');
 						$('#search').val('');
 						socket.emit('getChats', {});
 					}
