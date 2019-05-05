@@ -64,16 +64,19 @@ app.get('/', user.dashboard);
 app.get('/logout', user.logout);
 app.post('/login', user.auth);
 
+function twoDigits(number) {
+	if(number < 10) return '0'+number.toString();
+	else return number.toString();
+}
+
+function getDatetime() {
+	var date = new Date();
+	return date.getFullYear()+'.'+twoDigits(date.getMonth()+1)+'.'+twoDigits(date.getDate())+' '+twoDigits(date.getHours())+':'+twoDigits(date.getMinutes());
+}
 function getChats(userID, callback) {
 	db.query('SELECT `groups`.id, `groups`.name, `groups`.private, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = `groups`.last_message_id WHERE group_members.user_id = ? AND `groups`.private = 0; SELECT `groups`.id FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = ? AND `groups`.private = 1;', [userID, userID], function(error, results, fields) {
 		if(error) throw error;
-		var privateGroups = '';
-		for(var i in results[1]) {
-			privateGroups += results[1][i].id;
-			if(i < results[1].length-1) {
-				privateGroups += ', ';
-			}
-		}
+		var privateGroups = results[1].map(({id}) => id);
 		db.query('SELECT group_members.group_id AS id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN users ON users.id = group_members.user_id INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.group_id IN (?) AND group_members.user_id != ?;', [privateGroups, userID], function(error2, results2, fields2) {
 			if(error2) throw error2;
 			var chats = results[0].concat(results2);
@@ -84,7 +87,7 @@ function getChats(userID, callback) {
 }
 
 function getMessages(groupID, callback) {
-	db.query('SELECT sender_id, text, date_format(sent, "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ? LIMIT 10', [groupID], function(error, results, fields) {
+	db.query('SELECT sender_id, text, date_format(sent, "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ? ORDER BY UNIX_TIMESTAMP(sent) LIMIT 10', [groupID], function(error, results, fields) {
 		if(error) throw error;
 		callback(results);
 	});
@@ -96,40 +99,25 @@ io.on('connection', function(socket) {
 		return false;
 	} else {
 		socket.userID = socket.handshake.session.userID;
+		socket.user = socket.handshake.session.user;
 		console.log('Connected user with id: '+socket.userID);
 	}
 	socket.on('msg', function(data) {
 		db.query('SELECT * FROM group_members WHERE group_id = ?;', [data.chat], function(error, results, fields) {
 			if(error) throw error;
 			if(results.length > 0) {
-				var users = [];
-				for(var i in results) {
-					users.push(results[i].user_id);
-				}
+				var users = results.map(({user_id}) => id);
+				console.log(users);
 				if(users.includes(socket.userID)) {
 					db.query('INSERT INTO messages (group_id, sender_id, text, sent) VALUES (?, ?, ?, NOW());', [data.chat, socket.userID, data.message], function(error2, results2, fields2) {
 						if(error2) throw error2;
-						db.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results2.insertId, data.chat], function(error6, results6, fields6) {
-							if(error6) throw error6;
+						db.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results2.insertId, data.chat], function(error3, results3, fields3) {
+							if(error3) throw error3;
 							Object.keys(io.sockets.sockets).forEach(function(id) {
 								if(users.includes(io.sockets.sockets[id].userID)) {
-									db.query('SELECT `groups`.id, `groups`.name, `groups`.private, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = `groups`.last_message_id WHERE group_members.user_id = ? AND `groups`.private = 0; SELECT `groups`.id FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = ? AND `groups`.private = 1;', [io.sockets.sockets[id].userID, io.sockets.sockets[id].userID], function(error3, results3, fields3) {
-										if(error3) throw error3;
-										var privateGroups = '';
-										for(var i in results3[1]) {
-											privateGroups += results3[1][i].id;
-											if(i < results3[1].length-1) {
-												privateGroups += ', ';
-											}
-										}
-										db.query('SELECT group_members.group_id AS id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN users ON users.id = group_members.user_id INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.group_id IN (?) AND group_members.user_id != ?;', [privateGroups, io.sockets.sockets[id].userID], function(error4, results4, fields4) {
-											if(error4) throw error4;
-											var chats = results3[0].concat(results4);
-											chats.sort(compare);
-											db.query('SELECT sender_id, text, date_format(sent, "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ?;', [chats[0].id], function(error5, results5, fields5) {
-												if(error5) throw error5;
-												io.sockets.sockets[id].emit('message', {user_id: io.sockets.sockets[id].userID, chat: data.chat, chats: chats.slice(0, 10), messages: results5});
-											});
+									getChats(io.sockets.sockets[id].userID, function(chats) {
+										getMessages(chats[0].id, function(messages) {
+											io.sockets.sockets[id].emit('message', {user_id: io.sockets.sockets[id].userID, chat: data.chat, chats: chats, messages: messages});
 										});
 									});
 								}
@@ -179,22 +167,13 @@ io.on('connection', function(socket) {
 			} else {
 				db.query('INSERT INTO `groups` (private, creation_date) VALUES (1, NOW());', function(error2, results2, fields2) {
 					if(error2) throw error2;
-					db.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW()), (?, ?, NOW());', [results2.insertId, data.id, results2.insertId, socket.userID], function(error3, results3, fields3) {
+					db.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW()), (?, ?, NOW());INSERT INTO messages (group_id, sender_id, text, sent) VALUES (?, ?, ?, NOW());', [results2.insertId, data.id, results2.insertId, socket.userID, results2.insertId, -1, (socket.user.firstname+' utworzył(a) czat')], function(error3, results3, fields3) {
 						if(error3) throw error3;
-						getChats(socket.userID, function(chats) {
-							if(chats.map(({id}) => id).includes(results2.insertId) == false) {
-								db.query('SELECT concat(firstname, " ", lastname) AS name FROM users WHERE id = ?', data.id, function(error4, results4, fields4) {
-									chats.unshift({
-										id: results2.insertId,
-										name: results4[0].name,
-										last_message: null,
-										text: ''
-									});
-									socket.emit('openChat', {userID: socket.userID, chatID: results2.insertId, chats: chats, messages: []});
-								});
-							} else {
-								socket.emit('openChat', {userID: socket.userID, chatID: results2.insertId, chats: chats, messages: []});
-							}
+						db.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results3[1].insertId, results2.insertId], function(error4, results4, fields4) {
+							if(error4) throw error4;
+							getChats(socket.userID, function(chats) {
+								socket.emit('openChat', {userID: socket.userID, chatID: results2.insertId, chats: chats, messages: [{sender_id: -1, text: socket.user.firstname+' utworzył(a) czat', sent: getDatetime()}]});
+							});
 						});
 					});
 				});
@@ -209,6 +188,6 @@ http.listen(3000, function(){
 
 setTimeout(function() {
 	db.query('SELECT 1');
-}, 10000);
+}, 5000);
 
 //connection.end();

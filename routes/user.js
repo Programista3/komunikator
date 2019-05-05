@@ -17,13 +17,7 @@ exports.dashboard = function(req, res) {
 				if(results.length > 0) {
 					db.query('SELECT `groups`.id, `groups`.name, `groups`.private, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = `groups`.last_message_id WHERE group_members.user_id = ? AND `groups`.private = 0; SELECT `groups`.id FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = ? AND `groups`.private = 1;', [userID, userID], function(error2, results2, fields2) {
 						if(error2) throw error2;
-						var privateGroups = '';
-						for(var i in results2[1]) {
-							privateGroups += results2[1][i].id;
-							if(i < results2[1].length-1) {
-								privateGroups += ', ';
-							}
-						}
+						var privateGroups = results2[1].map(({id}) => id);
 						db.query('SELECT group_members.group_id AS id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN users ON users.id = group_members.user_id INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.group_id IN (?) AND group_members.user_id != ?;', [privateGroups, userID], function(error3, results3, fields3) {
 							if(error3) throw error3;
 							var chats = results2[0].concat(results3);
@@ -60,6 +54,7 @@ exports.auth = function(req, res) {
 		} else {
 			if(results.length > 0) {
 				req.session.userID = results[0].id;
+				req.session.user = {firstname: results[0].firstname};
 				res.redirect('/');
 			} else {
 				res.render('login', {message: 'Nieprawidłowy login lub hasło!'});

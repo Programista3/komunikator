@@ -21,14 +21,17 @@
 				$('#messages').html('');
 				messages.forEach(function(message) {
 					if(message.sender_id == userID) {
-						$('#messages').append('<li style="text-align: right"><span class="own" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+						$('#messages').append('<li style="text-align: right"><span class="message msg-own" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+					} else if(message.sender_id == -1) {
+						$('#messages').append('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>');
 					} else {
-						$('#messages').append('<li><span class="message" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+						$('#messages').append('<li><span class="message msg-default" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
 					}
 				});
 			}
 
             $(function () {
+				var search = false;
 				var socket = io();
 				window.location.hash = $('.active').data('id');
                 $('#send').click(function(e) {
@@ -57,14 +60,7 @@
 					window.location.href = '/login';
 				});
 				socket.on('messageList', function(data) {
-					$('#messages').html('');
-					data.messages.forEach(function(msg) {
-						if(msg.sender_id == data.id) {
-							$('#messages').append('<li style="text-align: right"><span class="own" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>');
-						} else {
-							$('#messages').append('<li><span class="message" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>');
-						}
-					});
+					updateMessages(data.messages, data.id);
 				});
 				socket.on('getChats', function(data) {
 					updateChats(data.chats, data.user_id);
@@ -75,13 +71,15 @@
 					updateMessages(data.messages, data.userID);
 				});
 				$('#search').on('input', function() {
+					if(!search) search = true;
 					$('#people').html('');
 					socket.emit('search', {query: $('#search').val()});
 				});
 				$(document).click(function(e) {
-					if($(e.target).closest('.list').length == 0) {
+					if($(e.target).closest('.list').length == 0 && search) {
 						$('#search').val('');
 						socket.emit('getChats', {});
+						search = false;
 					}
 				});
 				$(document.body).on('click', '.chat', function() {
@@ -121,9 +119,11 @@
 				<ul id="messages">
 					<% messages.forEach(function(msg) {
 						if(msg.sender_id == user.id) { %>
-							<%- '<li style="text-align: right"><span class="own" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
+							<%- '<li style="text-align: right"><span class="message msg-own" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
+						<% } else if(msg.sender_id == -1) { %>
+							<%- '<li style="text-align: center"><span class="msg-info" title="'+msg.sent+'">'+msg.text+'</span></li>' %>
 						<% } else { %>
-							<%- '<li><span class="message" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
+							<%- '<li><span class="message msg-default" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
 						<%}
 					}); %>
 				</ul>
