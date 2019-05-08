@@ -4,6 +4,7 @@ body {
 	background-color: #fdfdfd;
 	color: #313131;
 	font-family: 'Roboto Condensed', sans-serif;
+	overflow: hidden;
 }
 html {
 	height: 100%;
@@ -40,6 +41,7 @@ a {
 }
 .preview {
 	height: 82%;
+	overflow-y: auto;
 }
 #messages {
 	padding: 0;
@@ -167,4 +169,56 @@ input[type=text]:focus, input[type=password]:focus {
 	content: '';
 	clear: both;
 	display: block;
+}
+.login-form {
+	width: 25%;
+	background-color: #ffffff;
+	padding: 25px 5px;
+	margin: 8% auto 10px auto;
+	text-align: center;
+	font-size: 13px;
+	-webkit-box-shadow: 10px 10px 7px -7px rgb(95, 95, 95);
+	-moz-box-shadow: 10px 10px 7px -7px rgb(95, 95, 95);
+	box-shadow: 10px 10px 7px -7px rgb(95, 95, 95);
+}
+.login-form a {
+	color: rgb(0, 187, 0);
+}
+.login-form input[type=text], .login-form input[type=password] {
+	padding: 6px 10px;
+	width: 100%;
+	box-sizing: border-box;
+}
+.login-form input[type=submit] {
+	background-color: rgb(52, 196, 23);
+	color: white;
+	border: 0;
+	padding: 8px 20px;
+	width: 100%;
+}
+.login-form input[type=submit]:hover {
+	cursor: pointer;
+	background-color: rgb(87, 202, 63);
+}
+.form-group {
+	padding: 10px;
+}
+.alert {
+	color: red;
+	padding-top: 5px;
+	font-size: 15px;
+}
+.bg-green {
+	background-color: rgb(197, 255, 197);
+	height: auto;
+	text-align: center;
+	font-size: 14px;
+}
+.pad5 { 
+	padding: 5px 0;
+}
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+	-webkit-text-fill-color: #757575;
+	transition: background-color 5000s ease-in-out 0s;
+	border: 1px solid #a9a9a9;
 }
