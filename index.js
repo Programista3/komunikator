@@ -1,4 +1,4 @@
-var db = require('./routes/database'),
+var db = require('./database'),
 	express  = require('express'),
 	app = express(),
 	http = require('http').Server(app),
@@ -8,9 +8,10 @@ var db = require('./routes/database'),
 		secret: 'secret',
 		resave: true,
 		saveUninitialized: true,
+		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.0.8 (alpha)';
+	version = '2019.1.0 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -20,7 +21,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 io.use(sharedsession(session));
 
 app.get('/login', function(req, res) {
-	console.log("2");
 	if(!req.session.userID) {
 		res.render('login', {version: version});
 	} else {
@@ -48,9 +48,7 @@ app.get('/', function(req, res) {
 });
 
 app.get('/logout', function(req, res) {
-	console.log("1");
 	req.session.destroy(function() {
-		console.log("ok");
 		res.redirect('/login');
 	});
 });
@@ -161,18 +159,6 @@ io.on('connection', function(socket) {
 						socket.emit('openChat', {userID: socket.userID, chatID: groupID, chats: chats, messages: [{sender_id: -1, text: socket.user.firstname+' utworzył(a) czat', sent: getDatetime()}]});
 					});
 				});
-				/*db.query('INSERT INTO `groups` (private, creation_date) VALUES (1, NOW());', function(error2, results2, fields2) {
-					if(error2) throw error2;
-					db.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW()), (?, ?, NOW());INSERT INTO messages (group_id, sender_id, text, sent) VALUES (?, ?, ?, NOW());', [results2.insertId, data.id, results2.insertId, socket.userID, results2.insertId, -1, (socket.user.firstname+' utworzył(a) czat')], function(error3, results3, fields3) {
-						if(error3) throw error3;
-						db.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results3[1].insertId, results2.insertId], function(error4, results4, fields4) {
-							if(error4) throw error4;
-							getChats(socket.userID, function(chats) {
-								socket.emit('openChat', {userID: socket.userID, chatID: results2.insertId, chats: chats, messages: [{sender_id: -1, text: socket.user.firstname+' utworzył(a) czat', sent: getDatetime()}]});
-							});
-						});
-					});
-				});*/
 			}
 		});
 	});
