@@ -77,7 +77,7 @@ a {
 	color: #313131;
 	width: 60%;
 }
-input[type=text]:focus, input[type=password]:focus {
+input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
 	outline: 0;
 }
 .text-btn {
@@ -184,7 +184,7 @@ input[type=text]:focus, input[type=password]:focus {
 .login-form a {
 	color: rgb(0, 187, 0);
 }
-.login-form input[type=text], .login-form input[type=password] {
+.login-form input[type=text], .login-form input[type=password], .login-form input[type=email] {
 	padding: 6px 10px;
 	width: 100%;
 	box-sizing: border-box;

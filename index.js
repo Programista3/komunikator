@@ -11,7 +11,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.1.0 (closed beta)';
+	version = '2019.1.1 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -76,7 +76,7 @@ app.post('/login', function(req, res) {
 
 app.get('/register', function(req, res) {
 	if(!req.session.userID) {
-		res.render('register');
+		res.render('register', {version: version});
 	} else {
 		res.redirect('/');
 	}

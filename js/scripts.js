@@ -72,4 +72,12 @@ $(function () {
 		socket.emit('openChat', {id: $(this).data('id')});
 		$('#search').val('');
 	});
+	$('#send').click(function(e) {
+		e.preventDefault();
+		var id = window.location.hash.substr(1);
+		if(id != '' && $('#msg').val() != '') {
+			socket.emit('msg', {message: $('#msg').val(), chat: id});
+			$('#msg').val('');
+		}
+	});
 });
