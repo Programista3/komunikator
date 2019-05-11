@@ -37,7 +37,10 @@ $(function () {
 
 	// Socket.IO
 	socket.on('refresh', function(data) {
-		window.location.hash = data.chat;
+		if(['createChat', 'newMessage'].includes(data.type) && data.own == false) {
+			$.playSound('/notification.mp3');
+		}
+		window.location.hash = data.chatID;
 		updateChats(data.chats);
 		updateMessages(data.messages, data.userID);
 	});
@@ -55,11 +58,6 @@ $(function () {
 	});
 	socket.on('getChats', function(data) {
 		updateChats(data.chats, data.user_id);
-	});
-	socket.on('openChat', function(data) {
-		window.location.hash = data.chatID;
-		updateChats(data.chats);
-		updateMessages(data.messages, data.userID);
 	});
 
 	// JQuery

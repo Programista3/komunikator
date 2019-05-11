@@ -69,7 +69,7 @@ exports.getUserInfo = function(userID, callback) {
 exports.userExists = function(username, password, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT * FROM users WHERE username = ? AND password = ?;', [username, password], function(error, results, fields) {
+		connection.query('SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?;', [username, username, password], function(error, results, fields) {
 			connection.release();
 			if(error) {
 				callback(error['sqlMessage'], false, null);
@@ -133,10 +133,10 @@ exports.userInGroup = function(groupID, userID, callback) {
 	});
 }
 
-exports.searchUser = function(q, callback) {
+exports.searchUser = function(q, userID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT id, firstname, lastname, username FROM users WHERE username LIKE ?;', [q+'%'], function(error, results, fields) {
+		connection.query('SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id != ?;', [q+'%', q+'%', q+'%', userID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results);

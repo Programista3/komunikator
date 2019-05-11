@@ -12,7 +12,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.2.1 (closed beta)';
+	version = '2019.3.1 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -95,16 +95,6 @@ app.get('/info', function(req, res) {
 	res.render('info');
 });
 
-function twoDigits(number) {
-	if(number < 10) return '0'+number.toString();
-	else return number.toString();
-}
-
-function getDatetime() {
-	var date = new Date();
-	return date.getFullYear()+'.'+twoDigits(date.getMonth()+1)+'.'+twoDigits(date.getDate())+' '+twoDigits(date.getHours())+':'+twoDigits(date.getMinutes());
-}
-
 io.on('connection', function(socket) {
 	if(socket.handshake.session.userID == null) {
 		socket.disconnect();
@@ -121,10 +111,10 @@ io.on('connection', function(socket) {
 					db.getChats(io.sockets.sockets[id].userID, function(chats) {
 						if(chats.length > 0) {
 							db.getMessages(chats[0].id, function(messages) {
-								io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chat: data.chat, chats: chats, messages: messages});
+								io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chatID: data.chat, chats: chats, messages: messages, own: (io.sockets.sockets[id].userID == socket.userID ? true : false)});
 							});
 						} else {
-							io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chat: data.chat, chats: chats, messages: []});
+							io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chatID: data.chat, chats: chats, messages: [], own: (io.sockets.sockets[id].userID == socket.userID ? true : false)});
 						}
 					});
 				}
@@ -142,7 +132,7 @@ io.on('connection', function(socket) {
 		});
 	});
 	socket.on('search', function(data) {
-		db.searchUser(data.query, function(results) {
+		db.searchUser(data.query, socket.userID, function(results) {
 			socket.emit('search', {results: results});
 		});
 	});
@@ -160,17 +150,37 @@ io.on('connection', function(socket) {
 					}
 					if(chats.length > 0) {
 						db.getMessages(results[0].id, function(messages) {
-							socket.emit('openChat', {userID: socket.userID, chatID: results[0].id, chats: chats, messages: messages});
+							socket.emit('refresh', {type: 'openChat', userID: socket.userID, chatID: results[0].id, chats: chats, messages: messages});
 						});
 					} else {
-						socket.emit('openChat', {userID: socket.userID, chatID: results[0].id, chats: chats, messages: []});
+						socket.emit('refresh', {type: 'openChat', userID: socket.userID, chatID: results[0].id, chats: chats, messages: []});
 					}
 				});
 			} else {
 				db.createPrivateChat({id: socket.userID, firstname: socket.user.firstname}, data.id, function(groupID) {
 					db.getChats(socket.userID, function(chats) {
-						socket.emit('openChat', {userID: socket.userID, chatID: groupID, chats: chats, messages: [{sender_id: -1, text: socket.user.firstname+' utworzył(a) czat', sent: getDatetime()}]});
+						if(chats.length > 0) {
+							db.getMessages(chats[0].id, function(messages) {
+								socket.emit('refresh', {type: 'createChat', userID: socket.userID, chatID: groupID, chats: chats, messages: messages, own: true});
+							});
+						} else {
+							socket.emit('refresh', {type: 'createChat', userID: socket.userID, chatID: groupID, chats: chats, messages: [], own: true});
+						}
 					});
+					for(var id in io.sockets.sockets) {
+						if(io.sockets.sockets[id].userID == data.id) {
+							db.getChats(data.id, function(chats) {
+								if(chats.length > 0) {
+									db.getMessages(chats[0].id, function(messages) {
+										io.sockets.sockets[id].emit('refresh', {type: 'createChat', userID: data.id, chatID: groupID, chats: chats, messages: messages, own: false});
+									});
+								} else {
+									io.sockets.sockets[id].emit('refresh', {type: 'createChat', userID: data.id, chatID: groupID, chats: chats, messages: [], own: false});
+								}
+							});
+							break;
+						}
+					}
 				});
 			}
 		});
@@ -184,10 +194,10 @@ io.on('connection', function(socket) {
 							db.getChats(io.sockets.sockets[id].userID, function(chats) {
 								if(chats.length > 0) {
 									db.getMessages(chats[0].id, function(messages) {
-										io.sockets.sockets[id].emit('refresh', {type: 'removeChat', userID: io.sockets.sockets[id].userID, chat: data.groupID, chats: chats, messages: messages});
+										io.sockets.sockets[id].emit('refresh', {type: 'removeChat', userID: io.sockets.sockets[id].userID, chatID: data.groupID, chats: chats, messages: messages});
 									});
 								} else {
-									io.sockets.sockets[id].emit('refresh', {type: 'removeChat', userID: io.sockets.sockets[id].userID, chat: data.groupID, chats: chats, messages: []});
+									io.sockets.sockets[id].emit('refresh', {type: 'removeChat', userID: io.sockets.sockets[id].userID, chatID: data.groupID, chats: chats, messages: []});
 								}
 							});
 						}
