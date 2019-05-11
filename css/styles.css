@@ -30,6 +30,7 @@ a {
 	height: 100%;
 	float: left;
 	border-right: 1px solid silver;
+	position: relative;
 }
 .list {
 	height: 90%;
@@ -84,6 +85,18 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
 	text-decoration: none;
 	color: inherit;
 	font-weight: bold;
+	background-color: rgb(52, 196, 23);
+	color: white;
+	border: 0;
+	padding: 7px 15px;
+	border-radius: 5px;
+	-webkit-box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
+	-moz-box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
+	box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
+}
+.text-btn:hover {
+	background-color: rgb(87, 202, 63);
+	cursor: pointer;
 }
 .version {
 	position: fixed;
@@ -247,4 +260,24 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 }
 .center {
 	text-align: center;
+}
+.btn-circle {
+	background-color: rgb(52, 196, 23);
+	color: white;
+	width: 60px;
+	height: 60px;
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	border-radius: 50%;
+	line-height: 60px;
+	text-align: center;
+	font-size: 25px;
+	-webkit-box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
+	-moz-box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
+	box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
+}
+.btn-circle:hover {
+	background-color: rgb(87, 202, 63);
+	cursor: pointer;
 }
