@@ -22,14 +22,20 @@ exports.getChats = function(userID, callback) {
 		if(err) throw err;
 		connection.query('SELECT `groups`.id, `groups`.name, `groups`.private, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = `groups`.last_message_id WHERE group_members.user_id = ? AND `groups`.private = 0; SELECT `groups`.id FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id WHERE group_members.user_id = ? AND `groups`.private = 1;', [userID, userID], function(error, results, fields) {
 			if(error) throw error;
-			var privateGroups = results[1].map(({id}) => id);
-			connection.query('SELECT group_members.group_id AS id, concat(users.firstname, " ", users.lastname) AS name, `groups`.last_message, messages.text FROM group_members INNER JOIN users ON users.id = group_members.user_id INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.group_id IN (?) AND group_members.user_id != ?;', [privateGroups, userID], function(error2, results2, fields2) {
+			if(results[1].length > 0) {
+				var privateGroups = results[1].map(({id}) => id);
+				connection.query('SELECT group_members.group_id AS id, concat(users.firstname, " ", users.lastname) AS name, `groups`.private, `groups`.last_message, messages.text FROM group_members INNER JOIN users ON users.id = group_members.user_id INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = groups.last_message_id WHERE group_members.group_id IN (?) AND group_members.user_id != ?;', [privateGroups, userID], function(error2, results2, fields2) {
+					connection.release();
+					if(error2) throw error2;
+					var chats = results[0].concat(results2);
+					chats.sort(exports.compare);
+					callback(chats.slice(0, 10));
+				});
+			} else {
 				connection.release();
-				if(error2) throw error2;
-				var chats = results[0].concat(results2);
-				chats.sort(exports.compare);
-				callback(chats.slice(0, 10));
-			});
+				results[0].sort(exports.compare);
+				callback(results[0].slice(0, 10));
+			}
 		});
 	});
 }
@@ -37,7 +43,7 @@ exports.getChats = function(userID, callback) {
 exports.getMessages = function(groupID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT sender_id, text, date_format(sent, "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ? ORDER BY UNIX_TIMESTAMP(sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
+		connection.query('SELECT sender_id, text, DATE_FORMAT(CONVERT_TZ(sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ? ORDER BY UNIX_TIMESTAMP(sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results.reverse());
@@ -78,10 +84,22 @@ exports.userExists = function(username, password, callback) {
 	});
 }
 
+exports.getUsersInGroup = function(groupID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('SELECT * FROM group_members WHERE group_id = ?;', [groupID], function(error, results, fields) {
+			connection.release();
+			if(error) throw error;
+			var users = results.map(({user_id}) => user_id);
+			callback(users);
+		});
+	});
+}
+
 exports.sendMessage = function(groupID, userID, message, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT * FROM group_members WHERE group_id = ?;', groupID, function(error, results, fields) {
+		connection.query('SELECT * FROM group_members WHERE group_id = ?;', [groupID], function(error, results, fields) {
 			if(error) throw error;
 			if(results.length > 0) {
 				var users = results.map(({user_id}) => user_id);
@@ -118,7 +136,7 @@ exports.userInGroup = function(groupID, userID, callback) {
 exports.searchUser = function(q, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT id, firstname, lastname, username FROM users WHERE username LIKE ?;', q+'%', function(error, results, fields) {
+		connection.query('SELECT id, firstname, lastname, username FROM users WHERE username LIKE ?;', [q+'%'], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results);
@@ -150,6 +168,17 @@ exports.createPrivateChat = function(user1, user2, callback) {
 					callback(results.insertId);
 				});
 			});
+		});
+	});
+}
+
+exports.removeChat = function(groupID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('DELETE FROM messages WHERE group_id = ?;DELETE FROM group_members WHERE group_id = ?;DELETE FROM `groups` WHERE id = ?;', [groupID, groupID, groupID], function(error, results, fields) {
+			connection.release();
+			if(error) throw error;
+			callback();
 		});
 	});
 }

@@ -22,9 +22,13 @@
 					</form>
 				</section>
 				<ul id="people">
-					<% chats.forEach(function(chat, i) { %>
-						<li><a href="#<%= chat.id %>" class="chat <% if(i == 0) { %>active<% } %>" data-id="<%= chat.id %>"><%= chat.name %><span class="details"><%= chat.text %></span></a></li>
-					<% }); %>
+					<% if(chats.length > 0) { %>
+						<% chats.forEach(function(chat, i) { %>
+							<li><a href="#<%= chat.id %>" class="chat <% if(i == 0) { %>active<% } %>" data-id="<%= chat.id %>" data-type="<% if(chat.private == 1) { %>private<%  } else { %>public<% } %>"><%= chat.name %><span class="details"><%= chat.text %></span></a></li>
+						<% }); %>
+					<% } else { %>
+						<div class="center"><i class="demo-icon icon-up"></i><br>Brak utworzonych czatów.<br>Wyszukaj osoby aby utworzyć czat</div>
+					<% } %>
 				</ul>
 			</section>
 		</section>

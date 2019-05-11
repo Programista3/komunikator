@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var db = require('./database'),
 	express  = require('express'),
 	app = express(),
@@ -11,7 +12,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.1.1 (closed beta)';
+	version = '2019.2.1 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -36,9 +37,13 @@ app.get('/', function(req, res) {
 				res.render('error', {error: {code: 'Database error', message: error}});
 			} else {
 				db.getChats(userID, function(chats) {
-					db.getMessages(chats[0].id, function(messages) {
-						res.render('dashboard', {user: user, chats: chats, messages: messages, version: version});
-					});
+					if(chats.length > 0) {
+						db.getMessages(chats[0].id, function(messages) {
+							res.render('dashboard', {user: user, chats: chats, messages: messages, version: version});
+						});
+					} else {
+						res.render('dashboard', {user: user, chats: chats, messages: [], version: version});
+					}
 				});
 			}
 		});
@@ -114,9 +119,13 @@ io.on('connection', function(socket) {
 			Object.keys(io.sockets.sockets).forEach(function(id) {
 				if(users.includes(io.sockets.sockets[id].userID)) {
 					db.getChats(io.sockets.sockets[id].userID, function(chats) {
-						db.getMessages(chats[0].id, function(messages) {
-							io.sockets.sockets[id].emit('message', {userID: io.sockets.sockets[id].userID, chat: data.chat, chats: chats, messages: messages});
-						});
+						if(chats.length > 0) {
+							db.getMessages(chats[0].id, function(messages) {
+								io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chat: data.chat, chats: chats, messages: messages});
+							});
+						} else {
+							io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chat: data.chat, chats: chats, messages: []});
+						}
 					});
 				}
 			});
@@ -149,14 +158,39 @@ io.on('connection', function(socket) {
 					if(chats.map(({id}) => id).includes(results[0].id) == false) {
 						chats.unshift(results[0]);
 					}
-					db.getMessages(results[0].id, function(messages) {
-						socket.emit('openChat', {userID: socket.userID, chatID: results[0].id, chats: chats, messages: messages});
-					});
+					if(chats.length > 0) {
+						db.getMessages(results[0].id, function(messages) {
+							socket.emit('openChat', {userID: socket.userID, chatID: results[0].id, chats: chats, messages: messages});
+						});
+					} else {
+						socket.emit('openChat', {userID: socket.userID, chatID: results[0].id, chats: chats, messages: []});
+					}
 				});
 			} else {
 				db.createPrivateChat({id: socket.userID, firstname: socket.user.firstname}, data.id, function(groupID) {
 					db.getChats(socket.userID, function(chats) {
 						socket.emit('openChat', {userID: socket.userID, chatID: groupID, chats: chats, messages: [{sender_id: -1, text: socket.user.firstname+' utworzył(a) czat', sent: getDatetime()}]});
+					});
+				});
+			}
+		});
+	});
+	socket.on('removePrivateChat', function(data) {
+		db.getUsersInGroup(data.groupID, function(users) {
+			if(users.includes(socket.userID)) {
+				db.removeChat(data.groupID, function() {
+					Object.keys(io.sockets.sockets).forEach(function(id) {
+						if(users.includes(io.sockets.sockets[id].userID)) {
+							db.getChats(io.sockets.sockets[id].userID, function(chats) {
+								if(chats.length > 0) {
+									db.getMessages(chats[0].id, function(messages) {
+										io.sockets.sockets[id].emit('refresh', {type: 'removeChat', userID: io.sockets.sockets[id].userID, chat: data.groupID, chats: chats, messages: messages});
+									});
+								} else {
+									io.sockets.sockets[id].emit('refresh', {type: 'removeChat', userID: io.sockets.sockets[id].userID, chat: data.groupID, chats: chats, messages: []});
+								}
+							});
+						}
 					});
 				});
 			}
