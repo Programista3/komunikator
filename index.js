@@ -12,7 +12,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.3.1 (closed beta)';
+	version = '2019.4.1 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -203,6 +203,27 @@ io.on('connection', function(socket) {
 						}
 					});
 				});
+			}
+		});
+	});
+	socket.on('deleteMessage', function(data) {
+		db.getMessageInfo(data.messageID, function(message) {
+			if(message) {
+				if(message.sender_id == socket.userID && message.removed === null) {
+					db.getUsersInGroup(message.group_id, function(users) {
+						if(users.includes(socket.userID)) {
+							db.removeMessage(data.messageID, function() {
+								Object.keys(io.sockets.sockets).forEach(function(id) {
+									if(users.includes(io.sockets.sockets[id].userID)) {
+										db.getMessages(message.group_id, function(messages) {
+											io.sockets.sockets[id].emit('deleteMessage', {userID: io.sockets.sockets[id].userID, chatID: message.group_id, messages: messages});
+										});
+									}
+								});
+							});
+						}
+					});
+				}
 			}
 		});
 	});

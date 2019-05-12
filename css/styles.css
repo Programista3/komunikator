@@ -281,3 +281,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 	background-color: rgb(87, 202, 63);
 	cursor: pointer;
 }
+.removed {
+	font-style: italic;
+	font-size: 0.8em;
+}

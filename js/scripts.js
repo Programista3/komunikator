@@ -14,17 +14,30 @@ function updateMessages(messages, userID) {
 	$('#messages').html('');
 	messages.forEach(function(message) {
 		if(message.sender_id == userID) {
-			$('#messages').append('<li style="text-align: right"><span class="message msg-own" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+			if(message.removed !== null) {
+				$('#messages').append('<li style="text-align: right"><span class="message msg-own removed" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>');
+			} else {
+				$('#messages').append('<li style="text-align: right"><span class="message msg-own" title="Wysłano: '+message.sent+'" data-id="'+message.id+'">'+message.text+'</span></li>');
+			}
 		} else if(message.sender_id == -1) {
 			$('#messages').append('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>');
 		} else {
-			$('#messages').append('<li><span class="message msg-default" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+			if(message.removed !== null) {
+				$('#messages').append('<li><span class="message msg-default removed" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>');
+			} else {
+				$('#messages').append('<li><span class="message msg-default" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+			}
 		}
 	});
 }
 
 function privateContextMenu(position, chatID) {
 	$('body').append('<div id="ctmenu-chat" class="contextmenu"><ul><li class="leave-private" data-chat="'+chatID+'">Usuń czat</li></ul></div>');
+	$('#ctmenu-chat').css({'top': position.top, 'left': position.left}).show();
+}
+
+function messageContextMenu(position, messageID) {
+	$('body').append('<div id="ctmenu-chat" class="contextmenu"><ul><li class="delete-message" data-message="'+messageID+'">Usuń wiadomość</li></ul></div>');
 	$('#ctmenu-chat').css({'top': position.top, 'left': position.left}).show();
 }
 
@@ -58,6 +71,11 @@ $(function () {
 	});
 	socket.on('getChats', function(data) {
 		updateChats(data.chats, data.user_id);
+	});
+	socket.on('deleteMessage', function(data) {
+		if(window.location.hash == "#"+data.chatID.toString()) {
+			updateMessages(data.messages, data.userID);
+		}
 	});
 
 	// JQuery
@@ -105,7 +123,16 @@ $(function () {
 			// public chat context menu
 		}
 	});
+	$(document.body).on('contextmenu', '.msg-own', function(e) {
+		if($('.contextmenu').length) {
+			$('.contextmenu').remove();
+		}
+		messageContextMenu({left: e.pageX, top: e.pageY}, $(this).data('id'));
+	});
 	$(document.body).on('click', '.leave-private', function() {
 		socket.emit('removePrivateChat', {groupID: $(this).data('chat')});
-	})
+	});
+	$(document.body).on('click', '.delete-message', function() {
+		socket.emit('deleteMessage', {messageID: $(this).data('message')});
+	});
 });

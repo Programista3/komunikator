@@ -33,7 +33,7 @@
 					<% } %>
 				</ul>
 			</section>
-			<div class="btn-circle" id="create-group-chat" title="Utwórz czat grupowy"><i class="demo-icon icon-plus"></i></div>
+			<!--<div class="btn-circle" id="create-group-chat" title="Utwórz czat grupowy"><i class="demo-icon icon-plus"></i></div>-->
 		</section>
 		<section class="right">
 			<header>
@@ -42,13 +42,21 @@
 			<section class="preview">
 				<ul id="messages">
 					<% messages.forEach(function(msg) {
-						if(msg.sender_id == user.id) { %>
-							<%- '<li style="text-align: right"><span class="message msg-own" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
-						<% } else if(msg.sender_id == -1) { %>
+						if(msg.sender_id == user.id) {
+							if(msg.removed !== null) { %>
+								<%- '<li style="text-align: right"><span class="message msg-own removed" title="Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed+'" data-id="'+msg.id+'">'+msg.text+'</span></li>' %>
+							<% } else { %>
+								<%- '<li style="text-align: right"><span class="message msg-own" title="Wysłano: '+msg.sent+'" data-id="'+msg.id+'">'+msg.text+'</span></li>' %>
+							<% }
+						} else if(msg.sender_id == -1) { %>
 							<%- '<li style="text-align: center"><span class="msg-info" title="'+msg.sent+'">'+msg.text+'</span></li>' %>
-						<% } else { %>
-							<%- '<li><span class="message msg-default" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
-						<%}
+						<% } else {
+							if(msg.removed !== null) { %>
+								<%- '<li><span class="message msg-default removed" title="Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed+'">'+msg.text+'</span></li>' %>
+							<% } else { %>
+								<%- '<li><span class="message msg-default" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
+							<% }
+						}
 					}); %>
 				</ul>
 			</section>

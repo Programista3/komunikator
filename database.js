@@ -43,7 +43,7 @@ exports.getChats = function(userID, callback) {
 exports.getMessages = function(groupID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT sender_id, text, DATE_FORMAT(CONVERT_TZ(sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent FROM messages WHERE group_id = ? ORDER BY UNIX_TIMESTAMP(sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
+		connection.query('SELECT id, sender_id, text, DATE_FORMAT(CONVERT_TZ(sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages WHERE group_id = ? ORDER BY UNIX_TIMESTAMP(sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results.reverse());
@@ -179,6 +179,27 @@ exports.removeChat = function(groupID, callback) {
 			connection.release();
 			if(error) throw error;
 			callback();
+		});
+	});
+}
+
+exports.getMessageInfo = function(messageID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('SELECT * FROM messages WHERE id = ?', [messageID], function(error, results, fields) {
+			connection.release();
+			if(error) throw error;
+			callback(results.length ? results[0] : null);
+		})
+	});
+}
+
+exports.removeMessage = function(messageID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('UPDATE messages SET removed = NOW(), text = "Wiadomość została usunięta" WHERE id = ?', [messageID], function(error, results, fields) {
+			if(error) throw error;
+			callback(results);
 		});
 	});
 }
