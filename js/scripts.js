@@ -135,4 +135,8 @@ $(function () {
 	$(document.body).on('click', '.delete-message', function() {
 		socket.emit('deleteMessage', {messageID: $(this).data('message')});
 	});
+	$('#create-group-chat').click(function() {
+		$('.create-group-form > input[type=text]').val('');
+		$('.create-group-form').animate({width: 'toggle'});
+	});
 });
