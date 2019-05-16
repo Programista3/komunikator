@@ -29,16 +29,16 @@
 							<li><a href="#<%= chat.id %>" class="chat <% if(i == 0) { %>active<% } %>" data-id="<%= chat.id %>" data-type="<% if(chat.private == 1) { %>private<%  } else { %>public<% } %>"><%= chat.name %><span class="details"><%= chat.text %></span></a></li>
 						<% }); %>
 					<% } else { %>
-						<div class="center"><i class="demo-icon icon-up"></i><br>Brak utworzonych czatów.<br>Wyszukaj osoby aby utworzyć czat</div>
+						<div class="center"><i class="icon-up"></i><br>Brak utworzonych czatów.<br>Wyszukaj osoby aby utworzyć czat</div>
 					<% } %>
 				</ul>
 			</section>
-			<div class="btn-circle" id="create-group-chat" title="Utwórz czat grupowy"><i class="demo-icon icon-plus"></i></div>
-			<div class="create-group-form"><input type="text" id="group-name" placeholder="Nazwa czatu"><button><i class="demo-icon icon-ok"></i></button></div>
+			<div class="btn-circle" id="create-group-chat" title="Utwórz czat grupowy"><i class="icon-plus"></i></div>
+			<div class="create-group-form"><input type="text" id="group-name" placeholder="Nazwa czatu"><button><i class="icon-ok"></i></button></div>
 		</section>
 		<section class="right">
 			<header>
-				<h1>Messenger <a href="/logout"><i class="demo-icon icon-logout"></i></a></h1>
+				<h1>Messenger <a href="/logout"><i class="icon-logout"></i></a></h1>
 			</header>
 			<section class="preview">
 				<section class="messages">
@@ -72,21 +72,21 @@
 					</header>
 					<% if(chats.length > 0) { 
 						if(chat.private) { %>
-						<ul>
-							<li>Nazwa użytkownika: xxx</li>
-							<li>Data rejestracji: yyy</li>
-							<li>Zmień nick</li>
-							<li>Zmień kolor czatu</li>
+						<ul class="options">
+							<li><i class="icon-user"></i>Nazwa użytkownika: xxx</li>
+							<li><i class="icon-clock"></i>Data rejestracji: yyy</li>
+							<li class="option-active"><i class="icon-pencil"></i>Zmień nick</li>
+							<li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>
 						</ul>
 						<% } else { %>
-						<ul>
-							<li>Liczba członków: <%= chat.members %></li>
-							<li>Data utworzenia: <%= chat.creation_date %></li>
-							<li>Zmień nazwę</li>
-							<li>Zmień nicki</li>
-							<li>Zmień kolor czatu</li>
-							<li>Dodaj osoby</li>
-							<li>Usuń osoby</li>
+						<ul class="options">
+							<li><i class="icon-users"></i><%= chat.members %> członków</li>
+							<li><i class="icon-clock"></i>Utworzono <%= chat.creation_date %></li>
+							<li class="option-active"><i class="icon-pencil"></i>Zmień nazwę</li>
+							<li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li>
+							<li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>
+							<li class="option-active"><i class="icon-user-plus"></i>Dodaj osoby</li>
+							<li class="option-active"><i class="icon-user-times"></i>Usuń osoby</li>
 						</ul>
 						<% }
 					} %>
@@ -95,7 +95,7 @@
 			<section class="form">
 				<form class="msg-form" autocomplete="off">
 					<input type="text" placeholder="Wiadomość" id="msg">
-					<!--<a href="" class="text-btn" id="send-photo"><i class="demo-icon icon-picture"></i></a>&nbsp;-->
+					<!--<a href="" class="text-btn" id="send-photo"><i class="icon-picture"></i></a>&nbsp;-->
 					<input type="submit" value="Wyślij" class="text-btn" id="send">
 				</form>
 			</section>

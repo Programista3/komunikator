@@ -346,3 +346,23 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 	float: right;
 	border-left: 1px solid silver;
 }
+.options {
+	list-style-type: none;
+	padding: 0 15px;
+}
+.options i {
+	font-size: 23px;
+	margin: 0 8px;
+}
+.options > li {
+	cursor: default;
+	margin: 5px 0;
+	border-radius: 5px;
+	padding: 5px 0;
+}
+.options > .option-active {
+	cursor: pointer;
+}
+.options > .option-active:hover {
+	background-color: #f2f2f2;
+}

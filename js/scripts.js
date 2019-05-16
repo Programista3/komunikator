@@ -127,7 +127,9 @@ $(function () {
 		if($('.contextmenu').length) {
 			$('.contextmenu').remove();
 		}
-		messageContextMenu({left: e.pageX, top: e.pageY}, $(this).data('id'));
+		if(!$(this).hasClass('removed')) {
+			messageContextMenu({left: e.pageX, top: e.pageY}, $(this).data('id'));
+		}
 	});
 	$(document.body).on('click', '.leave-private', function() {
 		socket.emit('removePrivateChat', {groupID: $(this).data('chat')});
