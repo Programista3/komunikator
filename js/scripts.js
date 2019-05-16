@@ -10,22 +10,22 @@ function updateChats(chats) {
 	}
 }
 
-function updateMessages(messages, userID) {
+function updateMessages(messages, userID, color) {
 	$('#messages').html('');
 	messages.forEach(function(message) {
 		if(message.sender_id == userID) {
 			if(message.removed !== null) {
-				$('#messages').append('<li style="text-align: right"><span class="message msg-own removed" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>');
+				$('<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+color+';" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 			} else {
-				$('#messages').append('<li style="text-align: right"><span class="message msg-own" title="Wysłano: '+message.sent+'" data-id="'+message.id+'">'+message.text+'</span></li>');
+				$('<li style="text-align: right"><span class="message msg-own" style="background-color: #'+color+';" title="Wysłano: '+message.sent+'" data-id="'+message.id+'"></span></li>').appendTo('#messages').children().text(message.text);
 			}
 		} else if(message.sender_id == -1) {
-			$('#messages').append('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>');
+			$('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 		} else {
 			if(message.removed !== null) {
-				$('#messages').append('<li><span class="message msg-default removed" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>');
+				$('<li><span class="message msg-default removed" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 			} else {
-				$('#messages').append('<li><span class="message msg-default" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>');
+				$('<li><span class="message msg-default" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 			}
 		}
 	});
@@ -50,7 +50,7 @@ $(function () {
 
 	// Socket.IO
 	socket.on('refresh', function(data) {
-		if(['createChat', 'newMessage'].includes(data.type) && data.own == false) {
+		if(['createChat', 'newMessage'].includes(data.type) && data.own === false) {
 			$.playSound('/notification.mp3');
 		}
 		window.location.hash = data.chatID;
@@ -67,7 +67,7 @@ $(function () {
 		window.location.href = '/login';
 	});*/
 	socket.on('messageList', function(data) {
-		updateMessages(data.messages, data.id);
+		updateMessages(data.messages, data.id, data.chat.color);
 	});
 	socket.on('getChats', function(data) {
 		updateChats(data.chats, data.user_id);
@@ -105,7 +105,7 @@ $(function () {
 	$('#send').click(function(e) {
 		e.preventDefault();
 		var id = window.location.hash.substr(1);
-		if(id != '' && $('#msg').val() != '') {
+		if(id !== '' && $('#msg').val() !== '') {
 			socket.emit('msg', {message: $('#msg').val(), chat: id});
 			$('#msg').val('');
 		}
@@ -137,6 +137,6 @@ $(function () {
 	});
 	$('#create-group-chat').click(function() {
 		$('.create-group-form > input[type=text]').val('');
-		$('.create-group-form').animate({width: 'toggle'});
+		$('.create-group-form').stop().animate({width: 'toggle'});
 	});
 });

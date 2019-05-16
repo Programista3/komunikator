@@ -38,8 +38,12 @@ app.get('/', function(req, res) {
 			} else {
 				db.getChats(userID, function(chats) {
 					if(chats.length > 0) {
-						db.getMessages(chats[0].id, function(messages) {
-							res.render('dashboard', {user: user, chats: chats, messages: messages, version: version});
+						db.getChatInfo(chats[0].id, function(chat) {
+							if(chat) {
+								db.getMessages(chats[0].id, function(messages) {
+									res.render('dashboard', {user: user, chats: chats, chat: chat, messages: messages, version: version});
+								});
+							}
 						});
 					} else {
 						res.render('dashboard', {user: user, chats: chats, messages: [], version: version});
@@ -125,8 +129,12 @@ io.on('connection', function(socket) {
 	socket.on('getMessages', function(data) {
 		db.userInGroup(data.chat, socket.userID, function(inGroup) {
 			if(inGroup) {
-				db.getMessages(data.chat, function(messages) {
-					socket.emit('messageList', {messages: messages, id: socket.userID});
+				db.getChatInfo(data.chat, function(chat) {
+					if(chat) {
+						db.getMessages(data.chat, function(messages) {
+							socket.emit('messageList', {chat: chat, messages: messages, id: socket.userID});
+						});
+					}
 				});
 			}
 		});

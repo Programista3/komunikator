@@ -132,7 +132,11 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
 	display: block;
 	font-size: 0.8em;
 	color: gray;
-	padding-left: 10px;
+	padding: 0 10px;
+	white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 #messages > li {
 	padding: 10px 15px;
@@ -142,6 +146,9 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
 	display: inline-block;
 	border-radius: 10px;
 	font-size: 0.9em;
+	max-width: 50%;
+	word-wrap: break-word;
+	text-align: left;
 }
 .msg-own {
 	background-color: green;

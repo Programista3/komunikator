@@ -66,6 +66,21 @@ exports.getUserInfo = function(userID, callback) {
 	});
 }
 
+exports.getChatInfo = function(groupID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('SELECT `groups`.id, `groups`.name, `groups`.private, DATE_FORMAT(CONVERT_TZ(`groups`.creation_date, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS creation_date, HEX(`groups`.color) AS color, COUNT(group_members.group_id) AS members FROM `groups` INNER JOIN group_members ON `groups`.id = group_members.group_id WHERE id = ?;', [groupID], function(error, results, fields) {
+			connection.release();
+			if(error) throw error;
+			if(results.length > 0) {
+				callback(results[0]);
+			} else {
+				callback(false);
+			}
+		});
+	});
+}
+
 exports.userExists = function(username, password, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;

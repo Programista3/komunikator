@@ -46,17 +46,17 @@
 								<% messages.forEach(function(msg) {
 									if(msg.sender_id == user.id) {
 										if(msg.removed !== null) { %>
-											<%- '<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+chats[0].color+';" title="Nadawca: '+user.firstname+' '+user.lastname+'\r\nWysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed+'" data-id="'+msg.id+'">'+msg.text+'</span></li>' %>
+											<li style="text-align: right"><span class="message msg-own removed" style="background-color: #<%= chats[0].color %>;" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\n Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
 										<% } else { %>
-											<%- '<li style="text-align: right"><span class="message msg-own" style="background-color: #'+chats[0].color+';" title="Nadawca: '+user.firstname+' '+user.lastname+'\r\nWysłano: '+msg.sent+'" data-id="'+msg.id+'">'+msg.text+'</span></li>' %>
+											<li style="text-align: right"><span class="message msg-own" style="background-color: #<%= chats[0].color %>;" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\nWysłano: '+msg.sent %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
 										<% }
 									} else if(msg.sender_id == -1) { %>
-										<%- '<li style="text-align: center"><span class="msg-info" title="'+msg.sent+'">'+msg.text+'</span></li>' %>
+										<li style="text-align: center"><span class="msg-info" title="<%= +msg.sent %>"><%= msg.text %></span></li>
 									<% } else {
 										if(msg.removed !== null) { %>
-											<%- '<li><span class="message msg-default removed" title="Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed+'">'+msg.text+'</span></li>' %>
+											<li><span class="message msg-default removed" title="<%= 'Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>"><%= msg.text %></span></li>
 										<% } else { %>
-											<%- '<li><span class="message msg-default" title="Wysłano: '+msg.sent+'">'+msg.text+'</span></li>' %>
+											<li><span class="message msg-default" title="<%= 'Wysłano: '+msg.sent %>"><%= msg.text %></span></li>
 										<% }
 									}
 								}); %>
@@ -66,12 +66,12 @@
 					<header>
 						<h3>
 							<% if(chats.length > 0) { %>
-								<%= chats[0].name %>
+								<%= chat.name %>
 							<% } %>
 						</h3>
 					</header>
 					<% if(chats.length > 0) { 
-						if(chats[0].private) { %>
+						if(chat.private) { %>
 						<ul>
 							<li>Nazwa użytkownika: xxx</li>
 							<li>Data rejestracji: yyy</li>
@@ -80,8 +80,8 @@
 						</ul>
 						<% } else { %>
 						<ul>
-							<li>Liczba członków: xxx</li>
-							<li>Data utworzenia: yyy</li>
+							<li>Liczba członków: <%= chat.members %></li>
+							<li>Data utworzenia: <%= chat.creation_date %></li>
 							<li>Zmień nazwę</li>
 							<li>Zmień nicki</li>
 							<li>Zmień kolor czatu</li>
