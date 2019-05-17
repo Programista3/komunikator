@@ -43,7 +43,7 @@ exports.getChats = function(userID, callback) {
 exports.getMessages = function(groupID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT id, sender_id, text, DATE_FORMAT(CONVERT_TZ(sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages WHERE group_id = ? ORDER BY UNIX_TIMESTAMP(sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
+		connection.query('SELECT messages.id, messages.sender_id, CONCAT(users.firstname, " ", users.lastname) AS sender, messages.text, DATE_FORMAT(CONVERT_TZ(messages.sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(messages.removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages INNER JOIN users ON users.id = messages.sender_id WHERE messages.group_id = ? ORDER BY UNIX_TIMESTAMP(messages.sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results.reverse());
@@ -66,14 +66,32 @@ exports.getUserInfo = function(userID, callback) {
 	});
 }
 
-exports.getChatInfo = function(groupID, callback) {
+exports.getChatInfo = function(groupID, userID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT `groups`.id, `groups`.name, `groups`.private, DATE_FORMAT(CONVERT_TZ(`groups`.creation_date, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS creation_date, HEX(`groups`.color) AS color, COUNT(group_members.group_id) AS members FROM `groups` INNER JOIN group_members ON `groups`.id = group_members.group_id WHERE id = ?;', [groupID], function(error, results, fields) {
-			connection.release();
-			if(error) throw error;
+		connection.query('SELECT private FROM `groups` WHERE id = ?', [groupID], function(error, results, fields) {
 			if(results.length > 0) {
-				callback(results[0]);
+				if(results[0].private) {
+					connection.query('SELECT `groups`.id, CONCAT(users.firstname, " ", users.lastname) AS name, users.username, `groups`.private, DATE_FORMAT(CONVERT_TZ(users.register_date, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS register_date, HEX(`groups`.color) AS color FROM `groups` INNER JOIN group_members ON `groups`.id = group_members.group_id INNER JOIN users ON group_members.user_id = users.id WHERE `groups`.id = ? AND users.id = (SELECT user_id FROM group_members WHERE group_id = ? AND user_id != ?);', [groupID, groupID, userID], function(error, results, fields) {
+						connection.release();
+						if(error) throw error;
+						if(results.length > 0) {
+							callback(results[0]);
+						} else {
+							callback(false);
+						}
+					});
+				} else {
+					connection.query('SELECT `groups`.id, `groups`.name, `groups`.private, DATE_FORMAT(CONVERT_TZ(`groups`.creation_date, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS creation_date, HEX(`groups`.color) AS color, COUNT(group_members.group_id) AS members FROM `groups` INNER JOIN group_members ON `groups`.id = group_members.group_id WHERE `groups`.id = ?;', [groupID], function(error, results, fields) {
+						connection.release();
+						if(error) throw error;
+						if(results.length > 0) {
+							callback(results[0]);
+						} else {
+							callback(false);
+						}
+					});
+				}
 			} else {
 				callback(false);
 			}

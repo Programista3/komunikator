@@ -53,9 +53,11 @@ $(function () {
 		if(['createChat', 'newMessage'].includes(data.type) && data.own === false) {
 			$.playSound('/notification.mp3');
 		}
-		window.location.hash = data.chatID;
-		updateChats(data.chats);
-		updateMessages(data.messages, data.userID);
+		if(data.chats.length > 0) {
+			window.location.hash = data.chat.id;
+			updateChats(data.chats);
+			updateMessages(data.messages, data.userID, data.chat.color);
+		}
 	});
 	socket.on('search', function(data) {
 		$('#people').html('');
@@ -73,8 +75,8 @@ $(function () {
 		updateChats(data.chats, data.user_id);
 	});
 	socket.on('deleteMessage', function(data) {
-		if(window.location.hash == "#"+data.chatID.toString()) {
-			updateMessages(data.messages, data.userID);
+		if(window.location.hash == "#"+data.chat.id.toString()) {
+			updateMessages(data.messages, data.userID, data.chat.color);
 		}
 	});
 

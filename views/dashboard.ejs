@@ -54,9 +54,9 @@
 										<li style="text-align: center"><span class="msg-info" title="<%= +msg.sent %>"><%= msg.text %></span></li>
 									<% } else {
 										if(msg.removed !== null) { %>
-											<li><span class="message msg-default removed" title="<%= 'Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>"><%= msg.text %></span></li>
+											<li><span class="message msg-default removed" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>"><%= msg.text %></span></li>
 										<% } else { %>
-											<li><span class="message msg-default" title="<%= 'Wysłano: '+msg.sent %>"><%= msg.text %></span></li>
+											<li><span class="message msg-default" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent %>"><%= msg.text %></span></li>
 										<% }
 									}
 								}); %>
@@ -73,8 +73,8 @@
 					<% if(chats.length > 0) { 
 						if(chat.private) { %>
 						<ul class="options">
-							<li><i class="icon-user"></i>Nazwa użytkownika: xxx</li>
-							<li><i class="icon-clock"></i>Data rejestracji: yyy</li>
+							<li><i class="icon-user"></i>Nazwa użytkownika: <%= chat.username %></li>
+							<li><i class="icon-clock"></i>Data rejestracji: <%= chat.register_date %></li>
 							<li class="option-active"><i class="icon-pencil"></i>Zmień nick</li>
 							<li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>
 						</ul>
