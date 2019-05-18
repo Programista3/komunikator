@@ -12,7 +12,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.5.1 (closed beta)';
+	version = '2019.6.1 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -148,9 +148,27 @@ io.on('connection', function(socket) {
 		});
 	});
 	socket.on('search', function(data) {
-		db.searchUser(data.query, socket.userID, function(results) {
-			socket.emit('search', {results: results});
-		});
+		if(data.mode == 0) {
+			db.searchUser(data.query, socket.userID, function(results) {
+				socket.emit('search', {mode: 0, results: results});
+			});
+		} else if(data.mode == 1) {
+			db.userInGroup(data.groupID, socket.userID, function(inGroup) {
+				if(inGroup) {
+					db.searchOutsideGroup(data.query, data.groupID, function(results) {
+						socket.emit('search', {mode: 1, results: results});
+					});
+				}
+			});
+		} else if(data.mode == 2) {
+			db.userInGroup(data.groupID, socket.userID, function(inGroup) {
+				if(inGroup) {
+					db.searchInsideGroup(data.query, data.groupID, function(results) {
+						socket.emit('search', {mode: 2, results: results});
+					});
+				}
+			});
+		}
 	});
 	socket.on('getChats', function() {
 		db.getChats(socket.userID, function(chats) {

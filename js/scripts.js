@@ -59,6 +59,7 @@ function messageContextMenu(position, messageID) {
 
 $(function () {
 	var search = false;
+	var searchMode = 0;
 	var socket = io();
 	if($('.active').length) {
 		window.location.hash = $('.active').data('id');
@@ -84,7 +85,13 @@ $(function () {
 	socket.on('search', function(data) {
 		$('#people').html('');
 		data.results.forEach(user => {
-			$('#people').append('<li><div class="person">'+user.firstname+' '+user.lastname+' (@'+user.username+')</div><div class="openChat" data-id="'+user.id+'"><i class="demo-icon icon-comment"></div></li>');
+			if(searchMode == 0) {
+				$('#people').append('<li><div class="person">'+user.firstname+' '+user.lastname+' (@'+user.username+')</div><div title="Utwórz czat" class="search-btn openChat" data-id="'+user.id+'"><i class="demo-icon icon-comment"></div></li>');
+			} else if(searchMode == 1) {
+				$('#people').append('<li><div class="person">'+user.firstname+' '+user.lastname+' (@'+user.username+')</div><div title="Dodaj do czatu" class="search-btn add-member" data-id="'+user.id+'"><i class="demo-icon icon-plus"></div></li>');
+			} else if(searchMode == 2) {
+				$('#people').append('<li><div class="person">'+user.firstname+' '+user.lastname+' (@'+user.username+')</div><div title="Usuń z czatu" class="search-btn remove-member" data-id="'+user.id+'"><i class="demo-icon icon-minus"></div></li>');
+			}
 		});
 	});
 	/*socket.on('disconnect', function() {
@@ -106,16 +113,17 @@ $(function () {
 	// JQuery
 	$('#search').on('input', function() {
 		if(!search) search = true;
-		socket.emit('search', {query: $('#search').val()});
+		socket.emit('search', {query: $('#search').val(), mode: searchMode, groupID: parseInt(window.location.hash.slice(1))});
 	});
 	$('body').click(function(e) {
 		if($('#ctmenu-chat').length) {
 			$('#ctmenu-chat').remove();
 		}
-		if($(e.target).closest('.list').length == 0 && search) {
+		if($(e.target).closest('.list').length == 0 && search && !$(e.target).hasClass('option-active')) {
 			$('#search').val('');
 			socket.emit('getChats');
 			search = false;
+			searchMode = 0;
 		}
 	});
 	$(document.body).on('click', '.chat', function() {
@@ -165,5 +173,19 @@ $(function () {
 	$('#create-group-chat').click(function() {
 		$('.create-group-form > input[type=text]').val('');
 		$('.create-group-form').stop().animate({width: 'toggle'});
+	});
+	$(document.body).on('click', '.add-members', function() {
+		if(!search) search = true;
+		searchMode = 1;
+		socket.emit('search', {query: '', mode: searchMode, groupID: parseInt(window.location.hash.slice(1))});
+	});
+	$(document.body).on('click', '.add-member', function() {
+		socket.emit('addMember', {groudID: parseInt(window.location.hash.slice(1)), userID: $(this).data('id')});
+		$('#search').val('');
+	});
+	$(document.body).on('click', '.remove-members', function() {
+		if(!search) search = true;
+		searchMode = 2;
+		socket.emit('search', {query: '', mode: searchMode, groupID: parseInt(window.location.hash.slice(1))});
 	});
 });

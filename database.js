@@ -231,6 +231,29 @@ exports.removeMessage = function(messageID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
 		connection.query('UPDATE messages SET removed = NOW(), text = "Wiadomość została usunięta" WHERE id = ?', [messageID], function(error, results, fields) {
+			connection.release();
+			if(error) throw error;
+			callback(results);
+		});
+	});
+}
+
+exports.searchOutsideGroup = function(q, groupID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id NOT IN (SELECT user_id FROM group_members WHERE group_id = ?);', [q+'%', q+'%', q+'%', groupID], function(error, results, fields) {
+			connection.release();
+			if(error) throw error;
+			callback(results);
+		});
+	});
+}
+
+exports.searchInsideGroup = function(q, groupID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id IN (SELECT user_id FROM group_members WHERE group_id = ?);', [q+'%', q+'%', q+'%', groupID], function(error, results, fields) {
+			connection.release();
 			if(error) throw error;
 			callback(results);
 		});
