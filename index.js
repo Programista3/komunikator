@@ -12,7 +12,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.4.1 (closed beta)';
+	version = '2019.5.1 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -72,9 +72,13 @@ app.post('/login', function(req, res) {
 				res.render('error', {error: {code: 'Database error', message: error}});
 			} else {
 				if(exists) {
-					req.session.userID = user.id;
-					req.session.user = {firstname: user.firstname};
-					res.redirect('/');
+					if(user.blocked == false) {
+						req.session.userID = user.id;
+						req.session.user = {firstname: user.firstname};
+						res.redirect('/');
+					} else {
+						res.render('login', {message: 'Twoje konto zostało zablokowane!', version: version});
+					}
 				} else {
 					res.render('login', {message: 'Nieprawidłowy login lub hasło!', version: version});
 				}
@@ -114,7 +118,7 @@ io.on('connection', function(socket) {
 				if(users.includes(io.sockets.sockets[id].userID)) {
 					db.getChats(io.sockets.sockets[id].userID, function(chats) {
 						if(chats.length > 0) {
-							db.getChatInfo(chats[0].id, socket.userID, function(chat) {
+							db.getChatInfo(chats[0].id, io.sockets.sockets[id].userID, function(chat) {
 								if(chat) {
 									db.getMessages(chats[0].id, function(messages) {
 										io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chat: chat, chats: chats, messages: messages, own: (io.sockets.sockets[id].userID == socket.userID ? true : false)});
@@ -187,7 +191,7 @@ io.on('connection', function(socket) {
 						if(io.sockets.sockets[id].userID == data.id) {
 							db.getChats(data.id, function(chats) {
 								if(chats.length > 0) {
-									db.getChatInfo(chats[0].id, socket.userID, function(chat) {
+									db.getChatInfo(chats[0].id, data.id, function(chat) {
 										if(chat) {
 											db.getMessages(chats[0].id, function(messages) {
 												io.sockets.sockets[id].emit('refresh', {type: 'createChat', userID: data.id, chat: chat, chats: chats, messages: messages, own: false});
@@ -213,7 +217,7 @@ io.on('connection', function(socket) {
 						if(users.includes(io.sockets.sockets[id].userID)) {
 							db.getChats(io.sockets.sockets[id].userID, function(chats) {
 								if(chats.length > 0) {
-									db.getChatInfo(chats[0].id, socket.userID, function(chat) {
+									db.getChatInfo(chats[0].id, io.sockets.sockets[id].userID, function(chat) {
 										if(chat) {
 											db.getMessages(chats[0].id, function(messages) {
 												io.sockets.sockets[id].emit('refresh', {type: 'removeChat', userID: io.sockets.sockets[id].userID, chat:chat, chats: chats, messages: messages});
@@ -239,7 +243,7 @@ io.on('connection', function(socket) {
 							db.removeMessage(data.messageID, function() {
 								Object.keys(io.sockets.sockets).forEach(function(id) {
 									if(users.includes(io.sockets.sockets[id].userID)) {
-										db.getChatInfo(message.group_id, socket.userID, function(chat) {
+										db.getChatInfo(message.group_id, io.sockets.sockets[id].userID, function(chat) {
 											if(chat) {
 												db.getMessages(message.group_id, function(messages) {
 													io.sockets.sockets[id].emit('deleteMessage', {userID: io.sockets.sockets[id].userID, chat: chat, messages: messages});

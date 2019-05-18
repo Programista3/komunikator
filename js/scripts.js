@@ -15,20 +15,36 @@ function updateMessages(messages, userID, color) {
 	messages.forEach(function(message) {
 		if(message.sender_id == userID) {
 			if(message.removed !== null) {
-				$('<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+color+';" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
+				$('<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+color+';" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 			} else {
-				$('<li style="text-align: right"><span class="message msg-own" style="background-color: #'+color+';" title="Wysłano: '+message.sent+'" data-id="'+message.id+'"></span></li>').appendTo('#messages').children().text(message.text);
+				$('<li style="text-align: right"><span class="message msg-own" style="background-color: #'+color+';" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'" data-id="'+message.id+'"></span></li>').appendTo('#messages').children().text(message.text);
 			}
-		} else if(message.sender_id == -1) {
+		} else if(message.sender_id == null) {
 			$('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 		} else {
 			if(message.removed !== null) {
-				$('<li><span class="message msg-default removed" title="Wysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
+				$('<li><span class="message msg-default removed" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 			} else {
-				$('<li><span class="message msg-default" title="Wysłano: '+message.sent+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
+				$('<li><span class="message msg-default" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
 			}
 		}
 	});
+	$('.messages').scrollTop($('.messages').prop('scrollHeight'));
+}
+
+function updateChatInfo(chat) {
+	if(chat) {
+		$('.chat-info > header > h3').text(chat.name);
+		if(chat.private) {
+			$('.options').html('<li><i class="icon-user"></i>Nazwa użytkownika: '+chat.username+'</li><li><i class="icon-clock"></i>Data rejestracji: '+chat.register_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nick</li><li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>');
+		} else {
+			$('.options').html('<li><i class="icon-users"></i> '+chat.members+' członków</li><li><i class="icon-clock"></i>Utworzono '+chat.creation_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nazwę</li><li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li><li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li><li class="option-active"><i class="icon-user-plus"></i>Dodaj osoby</li><li class="option-active"><i class="icon-user-times"></i>Usuń osoby</li>');
+		}
+	} else {
+		$('.chat-info > header > h3').text('');
+		$('.options').html('');
+	}
+	
 }
 
 function privateContextMenu(position, chatID) {
@@ -47,6 +63,7 @@ $(function () {
 	if($('.active').length) {
 		window.location.hash = $('.active').data('id');
 	}
+	$('.messages').scrollTop($('.messages').prop('scrollHeight'));
 
 	// Socket.IO
 	socket.on('refresh', function(data) {
@@ -57,6 +74,11 @@ $(function () {
 			window.location.hash = data.chat.id;
 			updateChats(data.chats);
 			updateMessages(data.messages, data.userID, data.chat.color);
+			updateChatInfo(data.chat);
+		} else {
+			updateChats([]);
+			updateMessages([]);
+			updateChatInfo(false);
 		}
 	});
 	socket.on('search', function(data) {
@@ -70,6 +92,7 @@ $(function () {
 	});*/
 	socket.on('messageList', function(data) {
 		updateMessages(data.messages, data.id, data.chat.color);
+		updateChatInfo(data.chat);
 	});
 	socket.on('getChats', function(data) {
 		updateChats(data.chats, data.user_id);

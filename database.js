@@ -43,7 +43,7 @@ exports.getChats = function(userID, callback) {
 exports.getMessages = function(groupID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT messages.id, messages.sender_id, CONCAT(users.firstname, " ", users.lastname) AS sender, messages.text, DATE_FORMAT(CONVERT_TZ(messages.sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(messages.removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages INNER JOIN users ON users.id = messages.sender_id WHERE messages.group_id = ? ORDER BY UNIX_TIMESTAMP(messages.sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
+		connection.query('SELECT messages.id, messages.sender_id, CONCAT(users.firstname, " ", users.lastname) AS sender, messages.text, DATE_FORMAT(CONVERT_TZ(messages.sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(messages.removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages LEFT JOIN users ON users.id = messages.sender_id WHERE messages.group_id = ? ORDER BY UNIX_TIMESTAMP(messages.sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results.reverse());
@@ -193,7 +193,7 @@ exports.createPrivateChat = function(user1, user2, callback) {
 		if(err) throw err;
 		connection.query('INSERT INTO `groups` (private, creation_date) VALUES (1, NOW());', function(error, results, fields) {
 			if(error) throw error;
-			connection.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW()), (?, ?, NOW());INSERT INTO messages (group_id, sender_id, text, sent) VALUES (?, ?, ?, NOW());', [results.insertId, user2, results.insertId, user1.id, results.insertId, -1, (user1.firstname+' utworzył(a) czat')], function(error2, results2, fields2) {
+			connection.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW()), (?, ?, NOW());INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [results.insertId, user2, results.insertId, user1.id, results.insertId, (user1.firstname+' utworzył(a) czat')], function(error2, results2, fields2) {
 				if(error2) throw error2;
 				connection.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results2[1].insertId, results.insertId], function(error3, results3, fields3) {
 					connection.release();
