@@ -12,7 +12,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.6.1 (closed beta)';
+	version = '2019.7.1 (closed beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -163,7 +163,7 @@ io.on('connection', function(socket) {
 		} else if(data.mode == 2) {
 			db.userInGroup(data.groupID, socket.userID, function(inGroup) {
 				if(inGroup) {
-					db.searchInsideGroup(data.query, data.groupID, function(results) {
+					db.searchInsideGroup(data.query, data.groupID, socket.userID, function(results) {
 						socket.emit('search', {mode: 2, results: results});
 					});
 				}
@@ -276,6 +276,104 @@ io.on('connection', function(socket) {
 				}
 			}
 		});
+	});
+	socket.on('addMember', function(data) {
+		db.userInGroup(data.groupID, socket.userID, function(inGroup) {
+			if(inGroup) {
+				db.getUserInfo(data.userID, function(error, user) {
+					if(error == null) {
+						db.getUsersInGroup(data.groupID, function(users) {
+							if(!users.includes(data.userID)) {
+								db.addMember(data.groupID, {id: socket.userID, firstname: socket.user.firstname}, {id: data.userID, fullname: (user.firstname+' '+user.lastname)}, function() {
+									db.getChatInfo(data.groupID, socket.userID, function(chat) {
+										db.getMessages(data.groupID, function(messages) {
+											socket.emit('editMembers', {user1: data.userID, user2: socket.userID, chat: chat, messages: messages});
+										});
+									});
+									Object.keys(io.sockets.sockets).forEach(function(id) {
+										if(users.includes((io.sockets.sockets[id].userID) && io.sockets.sockets[id].userID != socket.userID) || io.sockets.sockets[id].userID == data.userID) {
+											db.getChats(io.sockets.sockets[id].userID, function(chats) {
+												if(chats.length > 0) {
+													db.getChatInfo(chats[0].id, io.sockets.sockets[id].userID, function(chat) {
+														if(chat) {
+															db.getMessages(chats[0].id, function(messages) {
+																io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chat: chat, chats: chats, messages: messages, own: false});
+															});
+														}
+													});
+												} else {
+													io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chats: chats, messages: [], own: false});
+												}
+											});
+										}
+									});
+								});
+							}
+						});
+					}
+				});
+			}
+		});
+	});
+	socket.on('removeMember', function(data) {
+		db.userInGroup(data.groupID, socket.userID, function(inGroup) {
+			if(inGroup) {
+				db.getUserInfo(data.userID, function(error, user) {
+					if(error == null) {
+						db.getUsersInGroup(data.groupID, function(users) {
+							if(users.includes(data.userID)) {
+								db.removeMember(data.groupID, {id: socket.userID, firstname: socket.user.firstname}, {id: data.userID, fullname: (user.firstname+' '+user.lastname)}, function() {
+									db.getChatInfo(data.groupID, socket.userID, function(chat) {
+										db.getMessages(data.groupID, function(messages) {
+											socket.emit('editMembers', {user1: data.userID, user2: socket.userID, chat: chat, messages: messages});
+										});
+									});
+									Object.keys(io.sockets.sockets).forEach(function(id) {
+										if(users.includes(io.sockets.sockets[id].userID) && io.sockets.sockets[id].userID != socket.userID) {
+											db.getChats(io.sockets.sockets[id].userID, function(chats) {
+												if(chats.length > 0) {
+													db.getChatInfo(chats[0].id, io.sockets.sockets[id].userID, function(chat) {
+														if(chat) {
+															db.getMessages(chats[0].id, function(messages) {
+																io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chat: chat, chats: chats, messages: messages, own: false});
+															});
+														}
+													});
+												} else {
+													io.sockets.sockets[id].emit('refresh', {type: 'newMessage', userID: io.sockets.sockets[id].userID, chats: chats, messages: [], own: false});
+												}
+											});
+										}
+									});
+								});
+							}
+						});
+					}
+				});
+			}
+		});
+	});
+	socket.on('createGroupChat', function(data) {
+		data.name.trim();
+		if(/^[a-zA-Z0-9 !@#$%&()?_\-,.]+$/.test(data.name)) {
+			db.createGroupChat(data.name, {id: socket.userID, firstname: socket.user.firstname}, function(groupID) {
+				db.getChats(socket.userID, function(chats) {
+					if(chats.length > 0) {
+						db.getChatInfo(chats[0].id, socket.userID, function(chat) {
+							if(chat) {
+								db.getMessages(chats[0].id, function(messages) {
+									socket.emit('refresh', {type: 'createGroupChat', userID: socket.userID, chat: chat, chats: chats, messages: messages, own: true});
+								});
+							}
+						});
+					} else {
+						socket.emit('refresh', {type: 'createGroupChat', userID: socket.userID, chats: chats, messages: [], own: true});
+					}
+				});
+			});
+		} else {
+			socket.emit('error1', {code: 0, text: 'Nazwa zawiera niedozwolone znaki!\r\nDozwolone znaki: a-zA-Z0-9 !@#$%&()?_-.,'});
+		}
 	});
 });
 

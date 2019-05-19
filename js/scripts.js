@@ -38,7 +38,7 @@ function updateChatInfo(chat) {
 		if(chat.private) {
 			$('.options').html('<li><i class="icon-user"></i>Nazwa użytkownika: '+chat.username+'</li><li><i class="icon-clock"></i>Data rejestracji: '+chat.register_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nick</li><li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>');
 		} else {
-			$('.options').html('<li><i class="icon-users"></i> '+chat.members+' członków</li><li><i class="icon-clock"></i>Utworzono '+chat.creation_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nazwę</li><li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li><li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li><li class="option-active"><i class="icon-user-plus"></i>Dodaj osoby</li><li class="option-active"><i class="icon-user-times"></i>Usuń osoby</li>');
+			$('.options').html('<li><i class="icon-users"></i> '+chat.members+' członków</li><li><i class="icon-clock"></i>Utworzono '+chat.creation_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nazwę</li><li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li><li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li><li class="option-active add-members"><i class="icon-user-plus"></i>Dodaj osoby</li><li class="option-active remove-members"><i class="icon-user-times"></i>Usuń osoby</li>');
 		}
 	} else {
 		$('.chat-info > header > h3').text('');
@@ -70,6 +70,9 @@ $(function () {
 	socket.on('refresh', function(data) {
 		if(['createChat', 'newMessage'].includes(data.type) && data.own === false) {
 			$.playSound('/notification.mp3');
+		} else if(data.type == 'createGroupChat') {
+			$('.group-name').val('');
+			$('.create-group-form').stop().animate({width: 'toggle'});
 		}
 		if(data.chats.length > 0) {
 			window.location.hash = data.chat.id;
@@ -108,6 +111,14 @@ $(function () {
 		if(window.location.hash == "#"+data.chat.id.toString()) {
 			updateMessages(data.messages, data.userID, data.chat.color);
 		}
+	});
+	socket.on('editMembers', function(data) {
+		updateChatInfo(data.chat);
+		updateMessages(data.messages, data.user2, data.chat.color);
+		$('#people').find('li > div[data-id='+data.user1+']').parent().remove();
+	});
+	socket.on('error1', function(error) {
+		alert(error.text);
 	});
 
 	// JQuery
@@ -174,18 +185,25 @@ $(function () {
 		$('.create-group-form > input[type=text]').val('');
 		$('.create-group-form').stop().animate({width: 'toggle'});
 	});
+	$('.create-group').click(function() {
+		if($('.group-name').val() != "") {
+			socket.emit('createGroupChat', {name: $('.group-name').val()});
+		}
+	});
 	$(document.body).on('click', '.add-members', function() {
 		if(!search) search = true;
 		searchMode = 1;
 		socket.emit('search', {query: '', mode: searchMode, groupID: parseInt(window.location.hash.slice(1))});
 	});
 	$(document.body).on('click', '.add-member', function() {
-		socket.emit('addMember', {groudID: parseInt(window.location.hash.slice(1)), userID: $(this).data('id')});
-		$('#search').val('');
+		socket.emit('addMember', {groupID: parseInt(window.location.hash.slice(1)), userID: $(this).data('id')});
 	});
 	$(document.body).on('click', '.remove-members', function() {
 		if(!search) search = true;
 		searchMode = 2;
 		socket.emit('search', {query: '', mode: searchMode, groupID: parseInt(window.location.hash.slice(1))});
+	});
+	$(document.body).on('click', '.remove-member', function() {
+		socket.emit('removeMember', {groupID: parseInt(window.location.hash.slice(1)), userID: $(this).data('id')});
 	});
 });

@@ -249,13 +249,58 @@ exports.searchOutsideGroup = function(q, groupID, callback) {
 	});
 }
 
-exports.searchInsideGroup = function(q, groupID, callback) {
+exports.searchInsideGroup = function(q, groupID, userID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id IN (SELECT user_id FROM group_members WHERE group_id = ?);', [q+'%', q+'%', q+'%', groupID], function(error, results, fields) {
+		connection.query('SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id IN (SELECT user_id FROM group_members WHERE group_id = ? AND user_id != ?);', [q+'%', q+'%', q+'%', groupID, userID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results);
+		});
+	});
+}
+
+exports.addMember = function(groupID, user1, user2, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW());INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [groupID, user2.id, groupID, (user1.firstname+' dodał użytkownika '+user2.fullname)], function(error, results, fields) {
+			if(error) throw error;
+			connection.query('UPDATE `groups` SET last_message_id = ?, last_message = NOW() WHERE id = ?;', [results[1].insertId, groupID], function(error2, results2, fields2) {
+				connection.release();
+				if(error2) throw error2;
+				callback();
+			});
+		});
+	});
+}
+
+exports.removeMember = function(groupID, user1, user2, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('DELETE FROM group_members WHERE group_id = ? AND user_id = ?;INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [groupID, user2.id, groupID, (user1.firstname+' usunął użytkownika '+user2.fullname)], function(error, results, fields) {
+			if(error) throw error;
+			connection.query('UPDATE `groups` SET last_message_id = ?, last_message = NOW() WHERE id = ?;', [results[1].insertId, groupID], function(error2, results2, fields2) {
+				connection.release();
+				if(error2) throw error2;
+				callback();
+			});
+		});
+	});
+}
+
+exports.createGroupChat = function(name, user, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('INSERT INTO `groups` (name, creation_date) VALUES (?, NOW())', [name], function(error, results, fields) {
+			if(error) throw error;
+			connection.query('INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW());INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [results.insertId, user.id, results.insertId, (user.firstname+' utworzył(a) czat')], function(error2, results2, fields2) {
+				if(error2) throw error2;
+				connection.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results2[1].insertId, results.insertId], function(error3, results3, fields3) {
+					if(error3) throw error3;
+					connection.release();
+					callback(results.insertId);
+				});
+			});
 		});
 	});
 }
