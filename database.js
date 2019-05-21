@@ -208,7 +208,7 @@ exports.createPrivateChat = function(user1, user2, callback) {
 exports.removeChat = function(groupID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('DELETE FROM messages WHERE group_id = ?;DELETE FROM group_members WHERE group_id = ?;DELETE FROM `groups` WHERE id = ?;', [groupID, groupID, groupID], function(error, results, fields) {
+		connection.query('DELETE FROM group_members WHERE group_id = ?;DELETE FROM `groups` WHERE id = ?;DELETE FROM messages WHERE group_id = ?;', [groupID, groupID, groupID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback();
@@ -301,6 +301,29 @@ exports.createGroupChat = function(name, user, callback) {
 					callback(results.insertId);
 				});
 			});
+		});
+	});
+}
+
+exports.leaveGroupChat = function(groupID, user, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('DELETE FROM group_members WHERE group_id = ? AND user_id = ?;SELECT COUNT(group_id) AS members FROM group_members WHERE group_id = ?;', [groupID, user.id, groupID], function(error, results, fields) {
+			if(error) throw error;
+			if(results[1][0].members > 0) {
+				connection.query('INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [groupID, (user.firstname+' opuścił czat')], function(error2, results2, fields2) {
+					connection.query('UPDATE `groups` SET last_message_id = ?, last_message = NOW() WHERE id = ?;', [results2.insertId, groupID], function(error3, results3, fields3) {
+						connection.release();
+						if(error2) throw error2;
+						callback();
+					});
+				});
+			} else {
+				connection.release();
+				exports.removeChat(groupID, function() {
+					callback();
+				});
+			}
 		});
 	});
 }

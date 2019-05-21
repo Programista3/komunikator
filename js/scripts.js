@@ -52,6 +52,11 @@ function privateContextMenu(position, chatID) {
 	$('#ctmenu-chat').css({'top': position.top, 'left': position.left}).show();
 }
 
+function groupContextMenu(position, chatID) {
+	$('body').append('<div id="ctmenu-chat" class="contextmenu"><ul><li class="leave-group" data-chat="'+chatID+'">Opuść czat</li></ul></div>');
+	$('#ctmenu-chat').css({'top': position.top, 'left': position.left}).show();
+}
+
 function messageContextMenu(position, messageID) {
 	$('body').append('<div id="ctmenu-chat" class="contextmenu"><ul><li class="delete-message" data-message="'+messageID+'">Usuń wiadomość</li></ul></div>');
 	$('#ctmenu-chat').css({'top': position.top, 'left': position.left}).show();
@@ -164,7 +169,7 @@ $(function () {
 		if($(this).data('type') == 'private') {
 			privateContextMenu({left: e.pageX, top: e.pageY}, $(this).data('id'));
 		} else if($(this).data('type') == 'public') {
-			// public chat context menu
+			groupContextMenu({left: e.pageX, top: e.pageY}, $(this).data('id'));
 		}
 	});
 	$(document.body).on('contextmenu', '.msg-own', function(e) {
@@ -177,6 +182,9 @@ $(function () {
 	});
 	$(document.body).on('click', '.leave-private', function() {
 		socket.emit('removePrivateChat', {groupID: $(this).data('chat')});
+	});
+	$(document.body).on('click', '.leave-group', function() {
+		socket.emit('leaveGroupChat', {groupID: $(this).data('chat')});
 	});
 	$(document.body).on('click', '.delete-message', function() {
 		socket.emit('deleteMessage', {messageID: $(this).data('message')});
