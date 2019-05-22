@@ -11,19 +11,23 @@
 			Rejestracja nowych użytkowników nie jest aktualnie możliwa!
 		</div>
         <!--<form action="" method="post" class="login-form">
-			<div class="form-group">
+			<div class="form-group input-half">
+				<input type="text" name="firstname" placeholder="Imię">
+				<input type="text" name="lastname" placeholder="Nazwisko">
+			</div>
+			<div class="form-group input-full">
 					<input type="text" name="username" placeholder="Nazwa użytkownika">
 			</div>
-			<div class="form-group">
+			<div class="form-group input-full">
 				<input type="email" name="email" placeholder="Email">
 			</div>
-			<div class="form-group">
+			<div class="form-group input-full">
 				<input type="password" name="password" placeholder="Hasło">
 			</div>
-			<div class="form-group">
+			<div class="form-group input-full">
 				<input type="password" name="password-repeat" placeholder="Powtórz hasło">
 			</div>
-			<div class="form-group">
+			<div class="form-group input-full">
 				<input type="submit" name="register" value="Zarejestruj się">
 			</div>
 			<div class="pad5">
@@ -33,8 +37,8 @@
 				<% if(typeof message != 'undefined') { %>
 					<div class="alert"><%= message %></div>
 				<% } %>
-			</div>
-		</form>-->
+			</div>-->
+		</form>
 		<span><a href="/changelog">Changelog</a></span>
 		<span class="version"><%= version %></span>
     </body>

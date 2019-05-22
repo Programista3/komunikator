@@ -1,11 +1,6 @@
 var mysql = require('mysql'),
-	pool = mysql.createPool({
-		host: 'remotemysql.com',
-		user: 'Zwb6PCMBNz',
-		password: 'ju4LAabhFb',
-		database: 'Zwb6PCMBNz',
-		multipleStatements: true
-	});
+	config = require('./config'),
+	pool = mysql.createPool(config.db);
 
 exports.compare = function(a, b) {
 	if (a.last_message < b.last_message) {
@@ -324,6 +319,20 @@ exports.leaveGroupChat = function(groupID, user, callback) {
 					callback();
 				});
 			}
+		});
+	});
+}
+
+exports.setChatName = function(groupID, name, user, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('UPDATE `groups` SET name = ? WHERE id = ?;INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [name, groupID, groupID, (user.firstname+' zmienił(a) nazwę czatu')], function(error, results, fields) {
+			if(error) throw error;
+			connection.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results[1].insertId, groupID], function(error2, results2, fields2) {
+				if(error2) throw error2;
+				connection.release();
+				callback();
+			});
 		});
 	});
 }

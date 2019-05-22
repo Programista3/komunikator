@@ -36,9 +36,9 @@ function updateChatInfo(chat) {
 	if(chat) {
 		$('.chat-info > header > h3').text(chat.name);
 		if(chat.private) {
-			$('.options').html('<li><i class="icon-user"></i>Nazwa użytkownika: '+chat.username+'</li><li><i class="icon-clock"></i>Data rejestracji: '+chat.register_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nick</li><li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>');
+			$('.options').html('<li><i class="icon-user"></i>Nazwa użytkownika: '+chat.username+'</li><li><i class="icon-clock"></i>Data rejestracji: '+chat.register_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nick</li><li class="option-active set-color"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>');
 		} else {
-			$('.options').html('<li><i class="icon-users"></i> '+chat.members+' członków</li><li><i class="icon-clock"></i>Utworzono '+chat.creation_date+'</li><li class="option-active"><i class="icon-pencil"></i>Zmień nazwę</li><li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li><li class="option-active"><i class="icon-color-adjust"></i>Zmień kolor czatu</li><li class="option-active add-members"><i class="icon-user-plus"></i>Dodaj osoby</li><li class="option-active remove-members"><i class="icon-user-times"></i>Usuń osoby</li>');
+			$('.options').html('<li><i class="icon-users"></i> '+chat.members+' członków</li><li><i class="icon-clock"></i>Utworzono '+chat.creation_date+'</li><li class="option-active edit-name"><i class="icon-pencil"></i>Zmień nazwę</li><li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li><li class="option-active set-color"><i class="icon-color-adjust"></i>Zmień kolor czatu<input type="color" class="color-picker" value="#ff0000"></li><li class="option-active add-members"><i class="icon-user-plus"></i>Dodaj osoby</li><li class="option-active remove-members"><i class="icon-user-times"></i>Usuń osoby</li>');
 		}
 	} else {
 		$('.chat-info > header > h3').text('');
@@ -124,6 +124,9 @@ $(function () {
 	});
 	socket.on('error1', function(error) {
 		alert(error.text);
+	});
+	socket.on('getChatName', function(data) {
+		$('.chat-name').text(data.chat.name);
 	});
 
 	// JQuery
@@ -213,5 +216,24 @@ $(function () {
 	});
 	$(document.body).on('click', '.remove-member', function() {
 		socket.emit('removeMember', {groupID: parseInt(window.location.hash.slice(1)), userID: $(this).data('id')});
+	});
+	$(document.body).on('click', '.edit-name', function() {
+		if($('.chat-name').children().length == 0) {
+			$('.chat-name').html('<input type="text" value="'+$('.chat-name').text().trim()+'"><i class="icon-ok edit-ok"></i><i class="icon-cancel edit-cancel"></i>');
+		} else {
+			socket.emit('getChatName', {groupID: parseInt(window.location.hash.slice(1))});
+		}
+	});
+	$(document.body).on('click', '.edit-ok', function() {
+		socket.emit('setChatName', {groupID: parseInt(window.location.hash.slice(1)), name: $('.chat-name > input').val()});
+	});
+	$(document.body).on('click', '.edit-cancel', function() {
+		socket.emit('getChatName', {groupID: parseInt(window.location.hash.slice(1))});
+	});
+	$(document.body).on('click', '.set-color', function() {
+		//$('.set-color').text('').append('<i class="icon-color-adjust"></i><input type="color" class="color-picker" value="#ff0000">');
+	});
+	$(document.body).on('change', '.color-picker', function() {
+		//alert("ok");
 	});
 });
