@@ -367,10 +367,15 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 }
 .options > .option-active {
 	cursor: pointer;
+	user-select: none;
 }
 .options > .option-active:hover {
 	background-color: #f2f2f2;
 }
 .edit-ok, .edit-cancel {
 	cursor: pointer;
+}
+.pickr {
+	display: inline-block;
+	margin-left: 5px;
 }

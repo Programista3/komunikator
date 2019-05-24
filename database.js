@@ -38,7 +38,7 @@ exports.getChats = function(userID, callback) {
 exports.getMessages = function(groupID, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT messages.id, messages.sender_id, CONCAT(users.firstname, " ", users.lastname) AS sender, messages.text, DATE_FORMAT(CONVERT_TZ(messages.sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(messages.removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages LEFT JOIN users ON users.id = messages.sender_id WHERE messages.group_id = ? ORDER BY UNIX_TIMESTAMP(messages.sent) DESC LIMIT 15', [groupID], function(error, results, fields) {
+		connection.query('SELECT messages.id, messages.sender_id, CONCAT(users.firstname, " ", users.lastname) AS sender, messages.text, DATE_FORMAT(CONVERT_TZ(messages.sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(messages.removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages LEFT JOIN users ON users.id = messages.sender_id WHERE messages.group_id = ? ORDER BY UNIX_TIMESTAMP(messages.sent) DESC', [groupID], function(error, results, fields) {
 			connection.release();
 			if(error) throw error;
 			callback(results.reverse());
@@ -327,6 +327,20 @@ exports.setChatName = function(groupID, name, user, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
 		connection.query('UPDATE `groups` SET name = ? WHERE id = ?;INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [name, groupID, groupID, (user.firstname+' zmienił(a) nazwę czatu')], function(error, results, fields) {
+			if(error) throw error;
+			connection.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results[1].insertId, groupID], function(error2, results2, fields2) {
+				if(error2) throw error2;
+				connection.release();
+				callback();
+			});
+		});
+	});
+}
+
+exports.setChatColor = function(groupID, color, user, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('UPDATE `groups` SET color = UNHEX(?) WHERE id = ?;INSERT INTO messages (group_id, text, sent) VALUES (?, ?, NOW());', [color, groupID, groupID, (user.firstname+' zmienił(a) kolor czatu na #'+color)], function(error, results, fields) {
 			if(error) throw error;
 			connection.query('UPDATE `groups` SET last_message = NOW(), last_message_id = ? WHERE id = ?', [results[1].insertId, groupID], function(error2, results2, fields2) {
 				if(error2) throw error2;

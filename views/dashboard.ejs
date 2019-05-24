@@ -7,10 +7,12 @@
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
 		<link rel="stylesheet" href="../css/fontello.css">
 		<link rel="stylesheet" href="../css/styles.css">
-        <script src="/socket.io/socket.io.js"></script>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.css"/>
+		<script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 		<script src="http://code.jquery.com/jquery-3.4.0.min.js"></script>
 		<script src="../js/jquery.playSound.js"></script>
-        <script src="../js/scripts.js"></script>
+    <script src="../js/scripts.js"></script>
     </head>
     <body>
 		<section class="left">
@@ -46,9 +48,9 @@
 								<% messages.forEach(function(msg) {
 									if(msg.sender_id == user.id) {
 										if(msg.removed !== null) { %>
-											<li style="text-align: right"><span class="message msg-own removed" style="background-color: #<%= chats[0].color %>;" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\n Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
+											<li style="text-align: right"><span class="message msg-own removed" style="background-color: #<%= chats[0].color %>;<% if(parseInt(chats[0].color, 16) > 12000000) { %>color: #2d2d2d; <% } %></span>" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\n Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
 										<% } else { %>
-											<li style="text-align: right"><span class="message msg-own" style="background-color: #<%= chats[0].color %>;" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\nWysłano: '+msg.sent %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
+											<li style="text-align: right"><span class="message msg-own" style="background-color: #<%= chats[0].color %>;<% if(parseInt(chats[0].color, 16) > 12000000) { %>color: #2d2d2d; <% } %>" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\nWysłano: '+msg.sent %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
 										<% }
 									} else if(msg.sender_id == null) { %>
 										<li style="text-align: center"><span class="msg-info" title="<%= msg.sent %>"><%= msg.text %></span></li>
@@ -77,14 +79,14 @@
 									<li><i class="icon-user"></i>Nazwa użytkownika: <%= chat.username %></li>
 									<li><i class="icon-clock"></i>Data rejestracji: <%= chat.register_date %></li>
 									<li class="option-active"><i class="icon-pencil"></i>Zmień nick</li>
-									<li class="option-active set-color"><i class="icon-color-adjust"></i>Zmień kolor czatu</li>
+									<li class="set-color"><i class="icon-color-adjust"></i>Kolor czatu: <div class="color-picker"><%= chat.color %></div></li>
 								
 								<% } else { %>
 									<li><i class="icon-users"></i><%= chat.members %> członków</li>
 									<li><i class="icon-clock"></i>Utworzono <%= chat.creation_date %></li>
+									<li class="set-color"><i class="icon-color-adjust"></i>Kolor czatu: <div class="color-picker"><%= chat.color %></div></li>
 									<li class="option-active edit-name"><i class="icon-pencil"></i>Zmień nazwę</li>
 									<li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li>
-									<li class="option-active set-color"><i class="icon-color-adjust"></i>Zmień kolor czatu<!--<input type="color" class="color-picker" value="#ff0000">--></li>
 									<li class="option-active add-members"><i class="icon-user-plus"></i>Dodaj osoby</li>
 									<li class="option-active remove-members"><i class="icon-user-times"></i>Usuń osoby</li>
 								<% }
