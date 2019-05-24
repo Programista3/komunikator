@@ -12,7 +12,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.7.3 (closed beta)';
+	version = '2019.8.3 (open beta)';
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
@@ -67,7 +67,7 @@ app.post('/login', function(req, res) {
 	if(post.username === "" || post.password === "") {
 		res.render('login', {message: 'Wypełnij wszystkie pola!', version: version});
 	} else {
-		db.userExists(post.username, post.password, function(error, exists, user) {
+		db.userExists({login: post.username, password: post.password}, function(error, exists, user) {
 			if(error) {
 				res.render('error', {error: {code: 'Database error', message: error}});
 			} else {
@@ -95,10 +95,36 @@ app.get('/register', function(req, res) {
 	}
 });
 
-/*app.post('/register', function(req, res) {
+app.post('/register', function(req, res) {
 	var post = req.body;
-
-});*/
+	if(post.username === "" || post.password === "" || post.firstname === "" || post.lastname === "" || post.email === "" || post.passwordRepeat === "") {
+		res.render('register', {message: 'Wypełnij wszystkie pola!', version: version});
+	} else {
+		if(!/^[a-zA-Z]+$/.test(post.firstname)) {
+			res.render('register', {message: 'Imię zawiera niedozwolone znaki!', version: version});
+		} else if(!/^[a-zA-Z]+$/.test(post.lastname)) {
+			res.render('register', {message: 'Nazwisko zawiera niedozwolone znaki!', version: version});
+		} else if(!/^[a-zA-Z0-9_]{3,15}$/.test(post.username)) {
+			res.render('register', {message: "Nazwa użytkownika może zawierać tylko litery, cyfry, znak '_' i musi mieć od 3 do 15 znaków!", version: version});
+		} else if(!/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(post.email)) {
+			res.render('register', {message: 'Nieprawidłowy email!', version: version});
+		} else if(!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(post.password)) {
+			res.render('register', {message: 'Hasło musi zawierać conajmniej 8 znaków (litery oraz cyfry)!', version: version});
+		} else if(post.password != post.passwordRepeat) {
+			res.render('register', {message: 'Podane hasła nie są takie same!', version: version});
+		} else {
+			db.userExists({username: post.username, email: post.email}, function(error, exists, user) {
+				if(!exists) {
+					db.createUser(post, function() {
+						res.redirect('/login');
+					});
+				} else {
+					res.render('register', {message: 'Użytkownik o podanym loginie lub emailu już istnieje!', version: version});
+				}
+			});
+		}
+	}
+});
 
 app.get('/changelog', function(req, res) {
 	res.render('changelog');

@@ -94,21 +94,36 @@ exports.getChatInfo = function(groupID, userID, callback) {
 	});
 }
 
-exports.userExists = function(username, password, callback) {
+exports.userExists = function(data, callback) {
 	pool.getConnection(function(err, connection) {
 		if(err) throw err;
-		connection.query('SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?;', [username, username, password], function(error, results, fields) {
-			connection.release();
-			if(error) {
-				callback(error['sqlMessage'], false, null);
-			} else {
-				if(results.length > 0) {
-					callback(null, true, results[0]);
+		if('login' in data && 'password' in data) {
+			connection.query('SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?;', [data.login, data.login, data.password], function(error, results, fields) {
+				connection.release();
+				if(error) {
+					callback(error['sqlMessage'], false, null);
 				} else {
-					callback(null, false, null);
+					if(results.length > 0) {
+						callback(null, true, results[0]);
+					} else {
+						callback(null, false, null);
+					}
 				}
-			}
-		});
+			});
+		} else if('username' in data && 'email' in data) {
+			connection.query('SELECT * FROM users WHERE username = ? OR email = ?;', [data.username, data.email], function(error, results, fields) {
+				connection.release();
+				if(error) {
+					callback(error['sqlMessage'], false, null);
+				} else {
+					if(results.length > 0) {
+						callback(null, true, results[0]);
+					} else {
+						callback(null, false, null);
+					}
+				}
+			});
+		}
 	});
 }
 
@@ -347,6 +362,17 @@ exports.setChatColor = function(groupID, color, user, callback) {
 				connection.release();
 				callback();
 			});
+		});
+	});
+}
+
+exports.createUser = function(user, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('INSERT INTO users (firstname, lastname, username, email, password, register_date) VALUES (?, ?, ?, ?, ?, NOW());', [user.firstname, user.lastname, user.username, user.email, user.password], function(error, results, fields) {
+			connection.release();
+			if(error) throw error;
+			callback();
 		});
 	});
 }

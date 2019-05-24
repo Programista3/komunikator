@@ -112,7 +112,9 @@ function colorPicker(color) {
 }
 
 $(function () {
-	colorPicker('#'+$('.color-picker').text());
+	if($('.color-picker').length > 0) {
+		colorPicker('#'+$('.color-picker').text());
+	}
 	if($('.active').length) {
 		window.location.hash = $('.active').data('id');
 	}
