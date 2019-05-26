@@ -14,7 +14,7 @@
 		<script src="../js/jquery.playSound.js"></script>
     <script src="../js/scripts.js"></script>
     </head>
-    <body>
+    <body <% if(user.dark_theme) { %>class="dark"<% } %>>
 		<section class="left">
 			<header>
 				<h1><%= user.firstname %> <%= user.lastname %></h1>
@@ -22,7 +22,10 @@
 			<section class="list">
 				<section class="search">
 					<form id="search-form" autocomplete="off">
-						<input type="text" placeholder="Szukaj osób" id="search">
+						<span style="position: relative">
+							<i class="icon-search"></i>
+							<input type="text" placeholder="Szukaj osób" class="search-text">
+						</span>
 					</form>
 				</section>
 				<ul id="people">
@@ -40,7 +43,7 @@
 		</section>
 		<section class="right">
 			<header>
-				<h1>Messenger <a href="/logout"><i class="icon-logout"></i></a></h1>
+				<h1>Messenger <i class="icon-circle btn-theme" title="Włącz <%= (user.dark_theme ? 'jasny' : 'ciemny') %> motyw"></i><a href="/logout" title="Wyloguj się"><i class="icon-logout"></i></a></h1>
 			</header>
 			<section class="preview">
 				<section class="messages">

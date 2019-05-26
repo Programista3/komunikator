@@ -4,6 +4,7 @@ var db = require('./database'),
 	app = express(),
 	http = require('http').Server(app),
 	io = require('socket.io')(http),
+	path = require('path'),
 	bodyParser = require('body-parser'),
 	session = require('express-session')({
 		secret: 'secret',
@@ -14,9 +15,9 @@ var db = require('./database'),
 	sharedsession = require("express-socket.io-session"),
 	version = '2019.8.3 (open beta)';
 
-app.set('views', __dirname+'/views');
+app.set('views', path.join(__dirname, '/views'));
 app.set('view engine', 'ejs');
-app.use(express.static(__dirname + '/'));
+app.use(express.static(path.join(__dirname, '/')));
 app.use(session);
 app.use(bodyParser.urlencoded({extended: true}));
 io.use(sharedsession(session));
