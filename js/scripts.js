@@ -16,21 +16,21 @@ function updateChats(chats) {
 }
 
 function updateMessages(messages, userID, color) {
-	$('#messages').html('');
+	$('.message-list').html('');
 	messages.forEach(function(message) {
 		if(message.sender_id == userID) {
 			if(message.removed !== null) {
-				$('<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+color+';'+color+';'+(parseInt(color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
+				$('<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+color+';'+color+';'+(parseInt(color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
 			} else {
-				$('<li style="text-align: right"><span class="message msg-own" style="background-color: #'+color+';'+(parseInt(color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'" data-id="'+message.id+'"></span></li>').appendTo('#messages').children().text(message.text);
+				$('<li style="text-align: right"><span class="message msg-own" style="background-color: #'+color+';'+(parseInt(color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'" data-id="'+message.id+'"></span></li>').appendTo('.message-list').children().text(message.text);
 			}
 		} else if(message.sender_id == null) {
-			$('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
+			$('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
 		} else {
 			if(message.removed !== null) {
-				$('<li><span class="message msg-default removed" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
+				$('<li><span class="message msg-default removed" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
 			} else {
-				$('<li><span class="message msg-default" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'">'+message.text+'</span></li>').appendTo('#messages').children().text(message.text);
+				$('<li><span class="message msg-default" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
 			}
 		}
 	});
