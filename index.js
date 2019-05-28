@@ -496,6 +496,11 @@ io.on('connection', function(socket) {
 			}
 		});
 	});
+	socket.on('changeTheme', function() {
+		db.changeTheme(socket.userID, function(theme) {
+			socket.emit('changeTheme', theme);
+		});
+	});
 });
 
 http.listen(3000, function(){

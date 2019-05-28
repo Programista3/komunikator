@@ -111,6 +111,21 @@ function colorPicker(color) {
 	});
 }
 
+function blurAnimation(element, blur, time, callback) {
+	$(element).css({
+		'filter': 'blur('+blur+'px)',
+		'webkitFilter': 'blur('+blur+'px)',
+		'mozFilter': 'blur('+blur+'px)',
+		'oFilter': 'blur('+blur+'px)',
+		'msFilter': 'blur('+blur+'px)',
+		'transition':'all '+time+'s ease-out',
+		'-webkit-transition':'all '+time+'s ease-out',
+		'-moz-transition':'all '+time+'s ease-out',
+		'-o-transition':'all '+time+'s ease-out'
+	});
+	setTimeout(callback, time*1000);
+}
+
 $(function () {
 	if($('.color-picker').length > 0) {
 		colorPicker('#'+$('.color-picker').text());
@@ -118,7 +133,7 @@ $(function () {
 	if($('.active').length) {
 		window.location.hash = $('.active').data('id');
 	}
-	$('.messages').scrollTop($('.messages').prop('scrollHeight'));
+	$('.message-list').scrollTop($('.message-list').prop('scrollHeight'));
 
 	// Socket.IO
 	socket.on('refresh', function(data) {
@@ -176,6 +191,21 @@ $(function () {
 	});
 	socket.on('getChatName', function(data) {
 		$('.chat-name').text(data.chat.name);
+	});
+	socket.on('changeTheme', function(theme) {
+		if(theme) {
+			blurAnimation('body', 10, 1, function() {
+				$('body').addClass('dark');
+				$('.btn-theme').prop('title', 'Włącz jasny motyw');
+				blurAnimation('body', 0, 1);
+			});
+		} else {
+			blurAnimation('body', 10, 1, function() {
+				$('body').removeClass('dark');
+				$('.btn-theme').prop('title', 'Włącz ciemny motyw');
+				blurAnimation('body', 0, 1);
+			});
+		}
 	});
 
 	// JQuery
@@ -280,6 +310,6 @@ $(function () {
 		socket.emit('getChatName', {groupID: parseInt(window.location.hash.slice(1))});
 	});
 	$('.btn-theme').click(function() {
-		
+		socket.emit('changeTheme');
 	});
 });

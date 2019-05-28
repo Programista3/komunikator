@@ -41,15 +41,10 @@ a {
   float: right; }
 
 .preview {
-  height: 82%; }
-
-#messages {
-  padding: 0;
-  margin: 0;
-  list-style-type: none; }
+  height: 90%; }
 
 .form {
-  height: calc(8% - 1px);
+  height: 10%;
   border-top: 1px solid silver;
   display: table;
   width: 100%; }
@@ -157,7 +152,23 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
   text-overflow: ellipsis;
   max-width: 100%; }
 
-#messages > li {
+.message-list {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d2d2d2 rgba(255, 255, 255, 0);
+  height: 90%; }
+
+.message-list::-webkit-scrollbar {
+  width: 6px; }
+
+.message-list::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background-color: #d2d2d2; }
+
+.message-list > li {
   padding: 10px 15px; }
 
 .message {
@@ -168,6 +179,11 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
   max-width: 50%;
   word-wrap: break-word;
   text-align: left; }
+
+.messages {
+  width: 66.7%;
+  height: 100%;
+  float: left; }
 
 .msg-own {
   background-color: green;
@@ -357,21 +373,6 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 
 .create-group-form button:hover {
   background-color: #57ca3f; }
-
-.messages {
-  width: 66.7%;
-  height: 100%;
-  float: left;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #d2d2d2 rgba(255, 255, 255, 0); }
-
-.messages::-webkit-scrollbar {
-  width: 6px; }
-
-.messages::-webkit-scrollbar-thumb {
-  border-radius: 6px;
-  background-color: #d2d2d2; }
 
 .chat-info {
   width: calc(33.3% - 1px);

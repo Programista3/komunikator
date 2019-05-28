@@ -376,3 +376,14 @@ exports.createUser = function(user, callback) {
 		});
 	});
 }
+
+exports.changeTheme = function(userID, callback) {
+	pool.getConnection(function(err, connection) {
+		if(err) throw err;
+		connection.query('UPDATE users SET dark_theme = NOT dark_theme WHERE id = ?; SELECT dark_theme FROM users WHERE id = ?', [userID, userID], function(error, results) {
+			connection.release();
+			if(error) throw error;
+			callback(results[1][0].dark_theme);
+		});
+	});
+}

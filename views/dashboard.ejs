@@ -47,25 +47,32 @@
 			</header>
 			<section class="preview">
 				<section class="messages">
-						<ul id="messages">
-								<% messages.forEach(function(msg) {
-									if(msg.sender_id == user.id) {
-										if(msg.removed !== null) { %>
-											<li style="text-align: right"><span class="message msg-own removed" style="background-color: #<%= chats[0].color %>;<% if(parseInt(chats[0].color, 16) > 12000000) { %>color: #2d2d2d; <% } %></span>" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\n Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
-										<% } else { %>
-											<li style="text-align: right"><span class="message msg-own" style="background-color: #<%= chats[0].color %>;<% if(parseInt(chats[0].color, 16) > 12000000) { %>color: #2d2d2d; <% } %>" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\nWysłano: '+msg.sent %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
-										<% }
-									} else if(msg.sender_id == null) { %>
-										<li style="text-align: center"><span class="msg-info" title="<%= msg.sent %>"><%= msg.text %></span></li>
-									<% } else {
-										if(msg.removed !== null) { %>
-											<li><span class="message msg-default removed" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>"><%= msg.text %></span></li>
-										<% } else { %>
-											<li><span class="message msg-default" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent %>"><%= msg.text %></span></li>
-										<% }
-									}
-								}); %>
-							</ul>
+					<ul class="message-list">
+						<% messages.forEach(function(msg) {
+							if(msg.sender_id == user.id) {
+								if(msg.removed !== null) { %>
+									<li style="text-align: right"><span class="message msg-own removed" style="background-color: #<%= chats[0].color %>;<% if(parseInt(chats[0].color, 16) > 12000000) { %>color: #2d2d2d; <% } %></span>" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\n Wysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
+								<% } else { %>
+									<li style="text-align: right"><span class="message msg-own" style="background-color: #<%= chats[0].color %>;<% if(parseInt(chats[0].color, 16) > 12000000) { %>color: #2d2d2d; <% } %>" title="<%= 'Nadawca: '+user.firstname+' '+user.lastname+'\r\nWysłano: '+msg.sent %>" data-id="<%= msg.id %>"><%= msg.text %></span></li>
+								<% }
+							} else if(msg.sender_id == null) { %>
+								<li style="text-align: center"><span class="msg-info" title="<%= msg.sent %>"><%= msg.text %></span></li>
+							<% } else {
+								if(msg.removed !== null) { %>
+									<li><span class="message msg-default removed" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>"><%= msg.text %></span></li>
+								<% } else { %>
+									<li><span class="message msg-default" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent %>"><%= msg.text %></span></li>
+								<% }
+							}
+						}); %>
+					</ul>
+					<section class="form">
+						<form class="msg-form" autocomplete="off">
+							<input type="text" placeholder="Wiadomość" id="msg">
+							<!--<a href="" class="text-btn" id="send-photo"><i class="icon-picture"></i></a>&nbsp;-->
+							<input type="submit" value="Wyślij" class="text-btn" id="send">
+						</form>
+					</section>
 				</section>
 				<section class="chat-info">
 					<header>
@@ -97,13 +104,6 @@
 						</ul>
 					</section>
 				</section>
-			</section>
-			<section class="form">
-				<form class="msg-form" autocomplete="off">
-					<input type="text" placeholder="Wiadomość" id="msg">
-					<!--<a href="" class="text-btn" id="send-photo"><i class="icon-picture"></i></a>&nbsp;-->
-					<input type="submit" value="Wyślij" class="text-btn" id="send">
-				</form>
 			</section>
 		</section>
 		<span class="version"><%= version %></span>

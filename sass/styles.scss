@@ -51,15 +51,11 @@ a {
 	float: right;
 }
 .preview {
-	height: 82%;
+	height: 90%;
 }
-#messages {
-	padding: 0;
-	margin: 0;
-	list-style-type: none;
-}
+
 .form {
-	height: calc(8% - 1px);
+	height: 10%;
 	border-top: 1px solid silver;
 	display: table;
 	width: 100%;
@@ -164,11 +160,27 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
 	color: gray;
 	padding: 0 10px;
 	white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
 }
-#messages > li {
+.message-list {
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: $scrollbar-light rgba(255,255,255,0);
+	height: 90%;
+}
+.message-list::-webkit-scrollbar {
+	width: 6px;
+}
+.message-list::-webkit-scrollbar-thumb {
+	border-radius: 6px;
+	background-color: $scrollbar-light;
+}
+.message-list > li {
 	padding: 10px 15px;
 }
 .message {
@@ -179,6 +191,11 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
 	max-width: 50%;
 	word-wrap: break-word;
 	text-align: left;
+}
+.messages {
+	width: 66.7%;
+	height: 100%;
+	float: left;
 }
 .msg-own {
 	background-color: green;
@@ -369,21 +386,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .create-group-form button:hover {
 	background-color: rgb(87, 202, 63);
 }
-.messages {
-	width: 66.7%;
-	height: 100%;
-	float: left;
-	overflow-y: auto;
-	scrollbar-width: thin;
-	scrollbar-color: $scrollbar-light rgba(255,255,255,0);
-}
-.messages::-webkit-scrollbar {
-	width: 6px;
-}
-.messages::-webkit-scrollbar-thumb {
-	border-radius: 6px;
-	background-color: $scrollbar-light;
-}
+
 .chat-info {
 	width: calc(33.3% - 1px);
 	height: 100%;
