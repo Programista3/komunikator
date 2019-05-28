@@ -68,7 +68,7 @@ a {
 	border-radius: 2px;
 	border: 0;
 	background-color: $light-theme-color2;
-	padding: 7px 10px 7px 25px;
+	padding: 7px 10px;
 	margin: 10px 0;
 	width: 90%;
 	box-sizing: border-box;
@@ -113,7 +113,7 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus {
 	background-color: rgb(52, 196, 23);
 	color: white;
 	border: 0;
-	padding: 7px 15px;
+	padding: 7px 25px;
 	border-radius: 5px;
 	-webkit-box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
 	-moz-box-shadow: 0px 0px 7px -2px rgba(64,64,64,1);
@@ -493,9 +493,20 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 			}
 		}
 	}
+	.pcr-app {
+		background-color: $dark-theme-color2;
+	}
 }
-.icon-search {
+.icon-left {
 	position: absolute;
 	top: 0;
 	left: 2px;
+}
+.icon-right {
+	position: absolute;
+	top: 0;
+	right: 2px;
+}
+#msg {
+	width: calc(80% - 34px);
 }

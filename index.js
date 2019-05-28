@@ -13,7 +13,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.8.3 (open beta)';
+	version = '2019.9.3 (open beta)';
 
 app.set('views', path.join(__dirname, '/views'));
 app.set('view engine', 'ejs');

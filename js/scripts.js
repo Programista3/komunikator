@@ -41,9 +41,9 @@ function updateChatInfo(chat) {
 	if(chat) {
 		$('.chat-info > header > h3').text(chat.name);
 		if(chat.private) {
-			$('.options').html('<li><i class="icon-user"></i>Nazwa użytkownika: '+chat.username+'</li><li><i class="icon-clock"></i>Data rejestracji: '+chat.register_date+'</li><li class="set-color"><i class="icon-color-adjust"></i>Kolor czatu: <span class="color-picker"></span></li><li class="option-active"><i class="icon-pencil"></i>Zmień nick</li>');
+			$('.options').html('<li><i class="icon-user"></i>Nazwa użytkownika: '+chat.username+'</li><li><i class="icon-clock"></i>Data rejestracji: '+chat.register_date+'</li><li class="set-color"><i class="icon-color-adjust"></i>Kolor czatu: <span class="color-picker"></span></li>');
 		} else {
-			$('.options').html('<li><i class="icon-users"></i> '+chat.members+' członków</li><li><i class="icon-clock"></i>Utworzono '+chat.creation_date+'</li><li class="set-color"><i class="icon-color-adjust"></i>Kolor czatu: <span class="color-picker"></span></li><li class="option-active edit-name"><i class="icon-pencil"></i>Zmień nazwę</li><li class="option-active"><i class="icon-pencil"></i>Zmień nicki</li><li class="option-active add-members"><i class="icon-user-plus"></i>Dodaj osoby</li><li class="option-active remove-members"><i class="icon-user-times"></i>Usuń osoby</li>');
+			$('.options').html('<li><i class="icon-users"></i> '+chat.members+' członków</li><li><i class="icon-clock"></i>Utworzono '+chat.creation_date+'</li><li class="set-color"><i class="icon-color-adjust"></i>Kolor czatu: <span class="color-picker"></span></li><li class="option-active edit-name"><i class="icon-pencil"></i>Zmień nazwę</li><li class="option-active add-members"><i class="icon-user-plus"></i>Dodaj osoby</li><li class="option-active remove-members"><i class="icon-user-times"></i>Usuń osoby</li>');
 		}
 	} else {
 		$('.chat-info > header > h3').text('');
@@ -298,7 +298,7 @@ $(function () {
 	});
 	$(document.body).on('click', '.edit-name', function() {
 		if($('.chat-name').children().length == 0) {
-			$('.chat-name').html('<input type="text" value="'+$('.chat-name').text().trim()+'"><i class="icon-ok edit-ok"></i><i class="icon-cancel edit-cancel"></i>');
+			$('.chat-name').html('<span style="position: relative;"><input type="text" style="padding-right: 55px;" value="'+$('.chat-name').text().trim()+'"><span class="icon-right"><i class="icon-ok edit-ok"></i><i class="icon-cancel edit-cancel"></i></span></span>');
 		} else {
 			socket.emit('getChatName', {groupID: parseInt(window.location.hash.slice(1))});
 		}
