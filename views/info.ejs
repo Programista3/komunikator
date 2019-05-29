@@ -2,8 +2,83 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+		<link rel="stylesheet" href="../css/changelog.css">
+		<title>Info</title>
 	</head>
 	<body>
-		Info
+		<h1>Zapytania</h1>
+		<h3>Pobieranie informacji o użytkowniku</h3>
+		<div class="code">
+			<code>SELECT * FROM users WHERE id = ?;</code>
+		</div>
+		<h3>Pobieranie wszystkich wiadomości</h3>
+		<div class="code">
+			<code>SELECT * FROM messages WHERE id = ?</code>
+		</div>
+		<h3>Pobieranie wszystkich użytkowników należących do czatu</h3>
+		<div class="code">
+			<code>SELECT * FROM group_members WHERE group_id = ?;</code>
+		</div>
+		<h3>Zmiana motywu</h3>
+		<div class="code">
+			<code>UPDATE users SET dark_theme = NOT dark_theme WHERE id = ?;</code>
+		</div>
+		<h3>Sprawdzanie czy użytkownik należy do czatu</h3>
+		<div class="code">
+			<code>SELECT * FROM group_members WHERE group_id = ? AND user_id = ?;</code>
+		</div>
+		<h3>Tworzenie prywatnego czatu</h3>
+		<div class="code">
+			<code>INSERT INTO `groups` (private, creation_date) VALUES (1, NOW());</code>
+		</div>
+		<h3>Sprawdzanie czy użytkownik o podanej nazwie i haśle istnieje</h3>
+		<div class="code">
+			<code>SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?;</code>
+		</div>
+		<h3>Wstawianie nowej wiadomośći</h3>
+		<div class="code">
+			<code>INSERT INTO messages (group_id, sender_id, text, sent) VALUES (?, ?, ?, NOW());</code>
+		</div>
+		<h3>Dodawanie użytkowników do czatu</h3>
+		<div class="code">
+			<code>INSERT INTO group_members (group_id, user_id, join_date) VALUES (?, ?, NOW()), (?, ?, NOW());</code>
+		</div>
+		<h3>Dodawanie nowego użytkownika</h3>
+		<div class="code">
+			<code>INSERT INTO users (firstname, lastname, username, email, password, register_date) VALUES (?, ?, ?, ?, ?, NOW());</code>
+		</div>
+		<h3>Usuwanie czatu</h3>
+		<div class="code">
+			<code>DELETE FROM group_members WHERE group_id = ?;DELETE FROM `groups` WHERE id = ?;DELETE FROM messages WHERE group_id = ?;</code>
+		</div>
+		<h3>Wyszukiwanie użytkowników po imieniu, nazwisku lub nazwie</h3>
+		<div class="code">
+			<code>SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id != ?;</code>
+		</div>
+		<h3>Wyszukiwanie wśród użytkowników nie należących do czatu</h3>
+		<div class="code">
+			<code>SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id NOT IN (SELECT user_id FROM group_members WHERE group_id = ?);</code>
+		</div>
+		<h3>Wyszukiwanie wśród użytkowników należących do czatu</h3>
+		<div class="code">
+			<code>SELECT id, firstname, lastname, username FROM users WHERE (username LIKE ? OR concat(firstname, " ", lastname) LIKE ? OR lastname LIKE ?) AND id IN (SELECT user_id FROM group_members WHERE group_id = ? AND user_id != ?);</code>
+		</div>
+		<h3>Pobieranie listy czatów grupowych dla konkretnego użytkownika</h3>
+		<div class="code">
+		<code>SELECT `groups`.id, `groups`.name, `groups`.private, HEX(`groups`.color) AS color, `groups`.last_message, messages.text FROM group_members INNER JOIN `groups` ON `groups`.id = group_members.group_id INNER JOIN messages ON messages.id = `groups`.last_message_id WHERE group_members.user_id = ? AND `groups`.private = 0;</code>
+		</div>
+		<h3>Pobieranie listy wiadomości dla konkretnego czatu</h3>
+		<div class="code">
+			<code>SELECT messages.id, messages.sender_id, CONCAT(users.firstname, " ", users.lastname) AS sender, messages.text, DATE_FORMAT(CONVERT_TZ(messages.sent, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS sent, DATE_FORMAT(CONVERT_TZ(messages.removed, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS removed FROM messages LEFT JOIN users ON users.id = messages.sender_id WHERE messages.group_id = ? ORDER BY UNIX_TIMESTAMP(messages.sent) DESC</code>
+		</div>
+		<h3>Pobieranie informacji o czacie grupowym</h3>
+		<div class="code">
+			<code>SELECT `groups`.id, `groups`.name, `groups`.private, DATE_FORMAT(CONVERT_TZ(`groups`.creation_date, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS creation_date, HEX(`groups`.color) AS color, COUNT(group_members.group_id) AS members FROM `groups` INNER JOIN group_members ON `groups`.id = group_members.group_id WHERE `groups`.id = ?;</code>
+		</div>
+		<h3>Pobieranie informacji o czacie prywatnym</h3>
+		<div class="code">
+			<code>SELECT `groups`.id, CONCAT(users.firstname, " ", users.lastname) AS name, users.username, `groups`.private, DATE_FORMAT(CONVERT_TZ(users.register_date, "+00:00", "+02:00"), "%d.%m.%Y %H:%i") AS register_date, HEX(`groups`.color) AS color FROM `groups` INNER JOIN group_members ON `groups`.id = group_members.group_id INNER JOIN users ON group_members.user_id = users.id WHERE `groups`.id = ? AND users.id = (SELECT user_id FROM group_members WHERE group_id = ? AND user_id != ?);</code>
+		</div>
+		<br><br>
 	</body>
 </html>
