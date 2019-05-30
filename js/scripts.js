@@ -11,26 +11,26 @@ function updateChats(chats) {
 		});
 		$('#people').find('[data-id="'+window.location.hash.slice(1)+'"]').addClass('active');
 	} else {
-		$('#people').append('<div class="center"><i class="demo-icon icon-up"></i><br>Brak utworzonych czatów.<br>Wyszukaj osoby aby utworzyć czat</div>');
+		$('#people').append('<div class="center"><i class="demo-icon icon-up"></i><br>Brak utworzonych czatów.<br>Wyszukaj osoby aby utworzyć czat</div><div class="center text-bottom">Lub utwórz czat grupowy&nbsp;<i class="icon-right"></i></div>');
 	}
 }
 
-function updateMessages(messages, userID, color) {
+function updateMessages(messages, userID, chat) {
 	$('.message-list').html('');
 	messages.forEach(function(message) {
 		if(message.sender_id == userID) {
 			if(message.removed !== null) {
-				$('<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+color+';'+color+';'+(parseInt(color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
+				$('<li style="text-align: right"><span class="message msg-own removed" style="background-color: #'+chat.color+';'+(parseInt(chat.color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'" data-id="'+message.id+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
 			} else {
-				$('<li style="text-align: right"><span class="message msg-own" style="background-color: #'+color+';'+(parseInt(color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'" data-id="'+message.id+'"></span></li>').appendTo('.message-list').children().text(message.text);
+				$('<li style="text-align: right"><span class="message msg-own" style="background-color: #'+chat.color+';'+(parseInt(chat.color, 16) > 12000000 ? 'color: #2d2d2d;' : '')+'" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'" data-id="'+message.id+'"></span></li>').appendTo('.message-list').children().text(message.text);
 			}
 		} else if(message.sender_id == null) {
 			$('<li style="text-align: center"><span class="msg-info" title="'+message.sent+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
 		} else {
 			if(message.removed !== null) {
-				$('<li><span class="message msg-default removed" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
+				$('<li>'+(!chat.private ? '<div class="sender">'+message.sender+'</div>' : '')+'<span class="message msg-default removed" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'\r\nUsunięto: '+message.removed+'">'+message.text+'</span></li>').appendTo('.message-list').children('span').text(message.text);
 			} else {
-				$('<li><span class="message msg-default" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'">'+message.text+'</span></li>').appendTo('.message-list').children().text(message.text);
+				$('<li>'+(!chat.private ? '<div class="sender">'+message.sender+'</div>' : '')+'<span class="message msg-default" title="Nadawca: '+message.sender+'\r\nWysłano: '+message.sent+'">'+message.text+'</span></li>').appendTo('.message-list').children('span').text(message.text);
 			}
 		}
 	});
@@ -146,7 +146,7 @@ $(function () {
 		if(data.chats.length > 0) {
 			window.location.hash = data.chat.id;
 			updateChats(data.chats);
-			updateMessages(data.messages, data.userID, data.chat.color);
+			updateMessages(data.messages, data.userID, data.chat);
 			updateChatInfo(data.chat);
 		} else {
 			updateChats([]);
@@ -170,7 +170,7 @@ $(function () {
 		window.location.href = '/login';
 	});*/
 	socket.on('messageList', function(data) {
-		updateMessages(data.messages, data.id, data.chat.color);
+		updateMessages(data.messages, data.id, data.chat);
 		updateChatInfo(data.chat);
 	});
 	socket.on('getChats', function(data) {
@@ -178,12 +178,12 @@ $(function () {
 	});
 	socket.on('deleteMessage', function(data) {
 		if(window.location.hash == "#"+data.chat.id.toString()) {
-			updateMessages(data.messages, data.userID, data.chat.color);
+			updateMessages(data.messages, data.userID, data.chat);
 		}
 	});
 	socket.on('editMembers', function(data) {
 		updateChatInfo(data.chat);
-		updateMessages(data.messages, data.user2, data.chat.color);
+		updateMessages(data.messages, data.user2, data.chat);
 		$('#people').find('li > div[data-id='+data.user1+']').parent().remove();
 	});
 	socket.on('error1', function(error) {
@@ -298,7 +298,7 @@ $(function () {
 	});
 	$(document.body).on('click', '.edit-name', function() {
 		if($('.chat-name').children().length == 0) {
-			$('.chat-name').html('<span style="position: relative;"><input type="text" style="padding-right: 55px;" value="'+$('.chat-name').text().trim()+'"><span class="icon-right"><i class="icon-ok edit-ok"></i><i class="icon-cancel edit-cancel"></i></span></span>');
+			$('.chat-name').html('<span style="position: relative;"><input type="text" style="padding-right: 55px;" value="'+$('.chat-name').text().trim()+'"><span class="icons-right"><i class="icon-ok edit-ok"></i><i class="icon-cancel edit-cancel"></i></span></span>');
 		} else {
 			socket.emit('getChatName', {groupID: parseInt(window.location.hash.slice(1))});
 		}

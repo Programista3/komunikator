@@ -13,7 +13,7 @@ var db = require('./database'),
 		unset: 'destroy'
 	}),
 	sharedsession = require("express-socket.io-session"),
-	version = '2019.9.3 (open beta)';
+	version = '2019.9.4';
 
 app.set('views', path.join(__dirname, '/views'));
 app.set('view engine', 'ejs');
@@ -101,9 +101,9 @@ app.post('/register', function(req, res) {
 	if(post.username === "" || post.password === "" || post.firstname === "" || post.lastname === "" || post.email === "" || post.passwordRepeat === "") {
 		res.render('register', {message: 'Wypełnij wszystkie pola!', version: version});
 	} else {
-		if(!/^[a-zA-Z]+$/.test(post.firstname)) {
+		if(!/^[a-zA-Zążźćęłńóś]+$/.test(post.firstname)) {
 			res.render('register', {message: 'Imię zawiera niedozwolone znaki!', version: version});
-		} else if(!/^[a-zA-Z]+$/.test(post.lastname)) {
+		} else if(!/^[a-zA-Zążźćęłńóś]+$/.test(post.lastname)) {
 			res.render('register', {message: 'Nazwisko zawiera niedozwolone znaki!', version: version});
 		} else if(!/^[a-zA-Z0-9_]{3,15}$/.test(post.username)) {
 			res.render('register', {message: "Nazwa użytkownika może zawierać tylko litery, cyfry, znak '_' i musi mieć od 3 do 15 znaków!", version: version});
@@ -142,7 +142,7 @@ io.on('connection', function(socket) {
 	} else {
 		socket.userID = socket.handshake.session.userID;
 		socket.user = socket.handshake.session.user;
-		console.log('Connected user with id: '+socket.userID);
+		//console.log('Connected user with id: '+socket.userID);
 	}
 	socket.on('msg', function(data) {
 		db.sendMessage(data.chat, socket.userID, data.message, function(users) {

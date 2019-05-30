@@ -23,18 +23,19 @@
 				<section class="search">
 					<form id="search-form" autocomplete="off">
 						<span style="position: relative">
-							<i class="icon-search icon-left"></i>
+							<i class="icon-search icons-left"></i>
 							<input type="text" style="padding-left: 25px;" placeholder="Szukaj osób" class="search-text">
 						</span>
 					</form>
 				</section>
 				<ul id="people">
 					<% if(chats.length > 0) { %>
-						<% chats.forEach(function(chat, i) { %>
-							<li><a href="#<%= chat.id %>" class="chat <% if(i == 0) { %>active<% } %>" data-id="<%= chat.id %>" data-type="<% if(chat.private == 1) { %>private<%  } else { %>public<% } %>"><%= chat.name %><span class="details"><%= chat.text %></span></a></li>
-						<% }); %>
+							<% chats.forEach(function(chat, i) { %>
+								<li><a href="#<%= chat.id %>" class="chat <% if(i == 0) { %>active<% } %>" data-id="<%= chat.id %>" data-type="<% if(chat.private == 1) { %>private<%  } else { %>public<% } %>"><%= chat.name %><span class="details"><%= chat.text %></span></a></li>
+							<% }); %>
 					<% } else { %>
-						<div class="center"><i class="icon-up"></i><br>Brak utworzonych czatów.<br>Wyszukaj osoby aby utworzyć czat</div>
+						<div class="center"><i class="icon-up"></i><br>Brak utworzonych czatów.<br>Wyszukaj osoby aby zacząć rozmowę</div>
+						<div class="center text-bottom">Lub utwórz czat grupowy&nbsp;<i class="icon-right"></i></div>
 					<% } %>
 				</ul>
 			</section>
@@ -59,9 +60,9 @@
 								<li style="text-align: center"><span class="msg-info" title="<%= msg.sent %>"><%= msg.text %></span></li>
 							<% } else {
 								if(msg.removed !== null) { %>
-									<li><span class="message msg-default removed" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>"><%= msg.text %></span></li>
+									<li><%- (!chat.private ? '<div class="sender">'+msg.sender+'</div>' : '') %><span class="message msg-default removed" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent+'\r\nUsunięto: '+msg.removed %>"><%= msg.text %></span></li>
 								<% } else { %>
-									<li><span class="message msg-default" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent %>"><%= msg.text %></span></li>
+									<li><%- (!chat.private ? '<div class="sender">'+msg.sender+'</div>' : '') %><span class="message msg-default" title="<%= 'Nadawca: '+msg.sender+'\r\nWysłano: '+msg.sent %>"><%= msg.text %></span></li>
 								<% }
 							}
 						}); %>
