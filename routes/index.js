@@ -24,7 +24,7 @@ router.get('/', (req, res) => {
 			}
 		});
 	} else {
-		res.redirect('/login');
+		res.redirect(process.env.BASE_URL+'/login');
 	}
 });
 
@@ -32,7 +32,7 @@ router.get('/login', (req, res) => {
 	if(!req.session.userID) {
 		res.render('login', {version: version});
 	} else {
-		res.redirect('/');
+		res.redirect(process.env.BASE_URL+'/');
 	}
 });
 
@@ -49,7 +49,7 @@ router.post('/login', (req, res) => {
 					if(user.blocked == false) {
 						req.session.userID = user.id;
 						req.session.user = {firstname: user.firstname};
-						res.redirect('/');
+						res.redirect(process.env.BASE_URL+'/');
 					} else {
 						res.render('login', {message: 'Twoje konto zostało zablokowane!', version: version});
 					}
@@ -63,7 +63,7 @@ router.post('/login', (req, res) => {
 
 router.get('/logout', (req, res) => {
 	req.session.destroy(function() {
-		res.redirect('/login');
+		res.redirect(process.env.BASE_URL+'/login');
 	});
 });
 
@@ -71,7 +71,7 @@ router.get('/register', (req, res) => {
 	if(!req.session.userID) {
 		res.render('register', {version: version});
 	} else {
-		res.redirect('/');
+		res.redirect(process.env.BASE_URL+'/');
 	}
 });
 
@@ -96,7 +96,7 @@ router.post('/register', (req, res) => {
 			db.userExists({username: post.username, email: post.email}, function(error, exists, user) {
 				if(!exists) {
 					db.createUser(post, function() {
-						res.redirect('/login');
+						res.redirect(process.env.BASE_URL+'/login');
 					});
 				} else {
 					res.render('register', {message: 'Użytkownik o podanym loginie lub emailu już istnieje!', version: version});
